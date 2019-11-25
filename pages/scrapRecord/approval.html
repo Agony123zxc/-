@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>供应商管理</title>
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/Ionicons/css/ionicons.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/bootstrap-treeview.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-table/dist/bootstrap-table.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-fileinput/css/fileinput.css" />
+    <link rel="stylesheet" href="../../css/common.css" />
+    
+    <style>
+    .treeview span.icon{font-size:20px;}
+   
+    .list-group-item.node-tree{border:none;}
+    .list-group-item.node-tree{padding:0px;}
+    .node-selected{color:#000!important;font-weight:700!important;background-color:#fff!important;}
+    .icon.expand-icon.glyphicon.glyphicon-plus{margin-left:3px;}
+    .columns.columns-right.btn-group.pull-right{margin-top:15px;}
+    .bs-bars.pull-left{margin-top:10px;margin-bottom:10px;}
+    .columns.columns-right.btn-group.pull-right{display:none!important;}
+    .fixed-table-container{height:210px;}
+    .fixed-table-toolbar{display:none;}
+    #formSearch{margin-bottom:10px;}
+    .form-control[readonly]{background:#fff;border:none;}
+    body{background:#fff;overflow:auto;}
+    .form-control{padding:0;width:165px;}
+    #formSearch label{width:70px;text-align:right;}
+    input[name='school-leader-approval']{width:15px;height:15px;-webkit-appearance:none;box-sizing:border-box;position:relative;border:1px solid #8B8B8B;border-radius:50%;outline:none;margin:0;margin-right:4px;position:relative;top:2px;}
+    input[name='school-leader-approval']:checked{outline:none;border-color:#27AAE1;}
+    input[name='school-leader-approval']:checked:after{position:absolute;width:9px;height:9px;background:#27AAE1;border-radius:50%;left:2px;top:2px;content:'';}
+    </style>
+</head>
+
+<body>
+    <div id="content" class="row-fluid" style="height:100%;">
+        <div class="col-md-12 col-xs-12" style="background-color: #fff;">
+            <div class="panel-body" style="margin: 0;padding: 0">
+                <div id="formSearch" class="form-inine clearfix">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <label>报废单号</label>
+                            <input readonly type="text" class="form-control" id="scrapNum">
+                        </div>
+                        <div class="form-group">
+                            <label>申请部门</label>
+                            <input readonly type="text" class="form-control" id="applyDepart">
+                        </div>
+                         <div class="form-group">
+                            <label>报废日期</label>
+                            <input readonly type="text" class="form-control" id="scrapDate">
+                        </div>
+                         <div class="form-group">
+                            <label>申请人员</label>
+                            <input readonly type="text" class="form-control" id="applyPerson">
+                        </div>
+                         <div class="form-group">
+                            <label>申请人工号</label>
+                            <input readonly type="text" class="form-control" id="JobNum">
+                        </div>
+                        <div class="form-group">
+                            <label>报废原因</label>
+                            <div class="form-control" id="scrapReason" style="height: auto;width: 740px;border: none;margin-left: 10px;"></div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <!-- 表格工具栏 -->
+                <div id="toolbar" class="btn-group">
+                    <!-- <button id="btn_add" type="button" class="btn btn-primary">添加</button>
+                    <button id="btn_delete" type="button" class="btn btn-danger del">删除</button> -->
+                </div>
+                <!-- 数据表格 -->
+                <table id="tb_departments"></table>
+                 <!-- 流程 -->
+                <div class="approval-progress">
+                    <ul>
+                        <!-- <li>
+                            <p class="name">张三</p>
+                            <p class="status">已审核<span class="reason"></span></p>
+                        </li>
+                        <li class="on">
+                            <p class="name">张三</p>
+                            <p class="status">已审核<span class="reason">驳回原因：请重新核查采购单</span></p>
+                        </li>
+                        <li class="on">
+                            <p class="name">张三</p>
+                            <p class="status">已驳回 <span class="reason">驳回原因：请重新核查采购单</span></p>
+                        </li> -->
+                    </ul>
+                </div>
+                <!-- <div class="school-leader-approval">
+                    <span style="color: #F75C5C;">部门会审：</span>
+                    <label style="margin-right: 10px;"><input type="radio" checked name="school-leader-approval" value="no">否</label>
+                    <label><input type="radio" name="school-leader-approval" value="yes">是</label>
+                </div> -->
+                <!-- <a href="###" id="downloadFile" download>下载附件</a> -->
+
+
+            </div>
+        </div>
+    </div>
+    <script src="../../static/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../../static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table-locale-all.min.js"></script>
+    <script src="../../static/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="../../static/dist/js/adminlte.min.js"></script>
+    <script src="../../static/dist/js/bootstrap-treeview.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/fileinput.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/locales/zh.js"></script>
+    <script type="text/javascript" src="../../static/bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js"></script>
+    <script type="text/javascript" src="../../static/dist/js/pack/tabsetting.js"></script>
+    <script type="text/javascript" src="../../static/dist/layer/layer.js"></script>
+    <script type="text/javascript" src="../../static/dist/laydate/laydate.js"></script>
+    <script type="text/javascript" src="../../js/common.js"></script>
+    <script src="./approval.js"></script>
+    <script type="text/javascript">
+    </script>
+</body>
+
+</html>

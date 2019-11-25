@@ -1,0 +1,79 @@
+{
+    "data": [
+        {
+            "id": "001",
+            "nodes": [
+                {
+                    "id": "002",
+                    "text": "土地",
+                    "link": "../land/index.html"
+                },
+                {
+                    "id": "003",
+                    "text": "房屋",
+                    "link": "../house/index.html"
+                },
+                {
+                    "id": "004",
+                    "text": "构筑物",
+                    "link": "../building/index.html"
+                },
+                {
+                    "id": "005",
+                    "text": "通用设备",
+                    "link": "../generalEquipment/index.html"
+                },
+                {
+                    "id": "006",
+                    "text": "专用设备",
+                    "link": "../specialEquipment/index.html"
+                },
+                {
+                    "id": "007",
+                    "text": "文物及陈列品",
+                    "link": "../culturalRelics/index.html"
+                },
+                {
+                    "id": "008",
+                    "text": "图书",
+                    "link": "../bookArchive/index.html"
+                },
+                {
+                    "id": "009",
+                    "text": "特种动植物",
+                    "link": "../specialPurposeAnimal/index.html"
+                },
+                 {
+                    "id": "010",
+                    "text": "家具",
+                    "link": "../bedType/index.html"
+                },
+                {
+                    "id": "011",
+                    "nodes": [
+                    {
+                        "id": "012",
+                        "text": "土地使用权",
+                        "link": "../landUseRights/index.html"
+                    },
+                    {
+                        "id": "013",
+                        "text": "其他",
+                        "link": "../patent/index.html"
+                    }],
+                    "text": "无形资产"
+                }
+
+            ],
+            "text": "固定资产",
+            "state":
+            {
+                "expanded": true
+            }
+        }
+
+    ],
+    "rescode": "0000",
+    "resmsg": "操作成功",
+    "success": true
+}

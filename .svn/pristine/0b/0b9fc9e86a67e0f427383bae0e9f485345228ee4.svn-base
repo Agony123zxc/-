@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>供应商管理</title>
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/Ionicons/css/ionicons.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/bootstrap-treeview.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-table/dist/bootstrap-table.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-fileinput/css/fileinput.css" />
+    <link rel="stylesheet" href="../../css/common.css" />
+    <style>
+    
+    .form-control{background:#fff !important;border:none;height: auto;}
+    body{background:#fff;overflow:auto;}
+    #formSearch .form-control{width:175px;}
+    label{width:100px;text-align:right;}
+
+    /* 自定义数据表格 */
+    .table-customize{width:100%;margin-bottom:20px;}
+    .table-customize tr:nth-child(1){background:#F4F4F5;}
+    .table-customize td{border:1px solid #ddd;padding:8px;text-align:center;position:relative;}
+    .table-customize td input{border:none;outline:none;text-align:center;}
+    
+    </style>
+</head>
+
+<body>
+    <div id="content" class="row-fluid print-wrap" style="height:100%;">
+        <div class="col-md-12 col-xs-12" style="background-color: #fff;">
+            <div class="panel-body" style="margin: 0;padding: 0">
+                <div id="formSearch" class="form-inine clearfix">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <label>申请人员：</label>
+                            <input readonly type="text" name="username" class="form-control" id="applyPerson">
+                        </div>
+                        <div class="form-group">
+                            <label>人员工号：</label>
+                            <input readonly type="text" name="username" class="form-control" id="applyJobNum">
+                        </div>
+                        <div class="form-group">
+                            <label>申请部门：</label>
+                            <input readonly type="text" name="username" class="form-control" id="applyDepart">
+                        </div>
+                        <div class="form-group">
+                            <label>申请单号：</label>
+                            <input readonly type="text" name="username" class="form-control" id="applyListNum">
+                        </div>
+                        <div class="form-group">
+                            <label>申请日期：</label>
+                            <input readonly type="text" name="username" class="form-control" id="applyDate">
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label style="position: relative;top: -12px;">项目必要性：</label>
+                            <div class="form-control" id="project-necessity" style="width: 780px;position: relative;top: -12px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label style="position: relative;top: -12px;">项目具体要求：</label>
+                            <div style="width: 780px;position: relative;top: -12px;" class="form-control" id="project-requre"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 表格工具栏 -->
+                <div id="toolbar" class="btn-group">
+                    <!-- <button id="btn_add" type="button" class="btn btn-primary">添加</button>
+                    <button id="btn_delete" type="button" class="btn btn-danger del">删除</button> -->
+                </div>
+               
+               <!-- 自定义数据表格 -->
+                <table class="table-customize" style="position: relative;top: -20px;">
+                    <tr>
+                        <td>项目名称</td>
+                        <td>联系电话</td>
+                        <td>预算金额</td>
+                        <td>完成时限</td>
+                    </tr>
+                    <tr>
+                        <td><input readonly autocomplete="off" type="text" name="" id="project-name"></td>
+                        <td><input readonly autocomplete="off" type="text" name="" id="phone"></td>
+                        <td><input readonly autocomplete="off" type="text" name="" id="price"></td>
+                        <td><input readonly autocomplete="off" type="text" name="" id="done-time"></td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+    </div>
+    <a id="print_btn" class="btn btn-primary" href="javascript:;" onclick="printBtn()" style="display: none;">打印</a>
+
+    <script src="../../static/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../../static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table-locale-all.min.js"></script>
+    <script src="../../static/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="../../static/dist/js/adminlte.min.js"></script>
+    <script src="../../static/dist/js/bootstrap-treeview.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/fileinput.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/locales/zh.js"></script>
+    <script type="text/javascript" src="../../static/bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js"></script>
+    <script type="text/javascript" src="../../static/dist/js/pack/tabsetting.js"></script>
+    <script type="text/javascript" src="../../static/dist/layer/layer.js"></script>
+    <script type="text/javascript" src="../../static/dist/laydate/laydate.js"></script>
+    <script type="text/javascript" src="../../js/common.js"></script>
+    <script src="./detail.js"></script>
+    <script type="text/javascript">
+    </script>
+</body>
+
+</html>

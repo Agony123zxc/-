@@ -1,0 +1,30 @@
+//线上
+// var port='http://zhhq.zzyedu.cn/byxassets';
+// var Port = 'http://zhhq.zzyedu.cn/byxassets';
+
+
+//可以不用注释(单点登录用到)
+var Port_lit = "http://zhhq.zzyedu.cn/Hall/user/login";
+var Port_lit_out="http://zhhq.zzyedu.cn/Hall/user/logout";
+
+
+
+// var port = 'http://192.168.1.141:99';//世源
+var port = 'http://192.168.1.215:94'; //浩奇
+// var port = 'http://192.168.1.88:94'; //秋生
+// var port = 'http://192.168.1.171:8080'; //玉甫
+
+
+
+
+// 获取登录用户
+$.ajax({
+    url: port + '/v1/applybuyAsset/getCurrentUser',
+    type: 'post',
+    success: function(res) {
+    	console.log('登录人信息',res);
+        localStorage.setItem('pJobnum', res.pJobnum);//工号
+        localStorage.setItem('loginPerson', res.pName);//登录人
+        localStorage.setItem('loginDepart', res.depId);//登录人部门
+    }
+});

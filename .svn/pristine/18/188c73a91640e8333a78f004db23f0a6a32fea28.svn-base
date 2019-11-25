@@ -1,0 +1,548 @@
+var applyNum = ''; //申请单号
+var ids; //添加物料选择的id
+
+
+$(function() {
+
+
+    //申请单号回显
+    $.ajax({
+        url: port + '/v1/materBuy/getNumbers',
+        type: 'post',
+        success: function(res) {
+            $('#applyNum').attr('value', res);
+            applyNum = res; //申请单号
+        }
+    });
+
+    //1.初始化Table
+    var oTable = new TableInit();
+    oTable.Init();
+
+    // //2.初始化Button的点击事件
+    var oButtonInit = new ButtonInit();
+    oButtonInit.Init();
+
+
+});
+
+//查询
+function searchBtn() {
+    console.log('查询');
+    if ($('#orgName').val() == '' && $('#orgSimpleName').val() == '') {
+        return;
+    }
+    $("#tb_departments").bootstrapTable('refresh');
+}
+//重置
+function resetBtn() {
+    console.log('重置');
+    location.reload();
+}
+
+
+
+
+
+//初始化Table
+var TableInit = function() {
+    var oTableInit = new Object();
+    oTableInit.Init = function() {
+        $('#tb_departments').bootstrapTable({
+            url: port + '/v1/materielOutapply/findOutapplyDetailRows',
+            method: 'get',
+            locale: 'zh-CN',
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true, //是否显示分页（*）
+            sortable: true, //是否启用排序
+            sortOrder: "asc", //排序方式
+            queryParams: oTableInit.queryParams, //查询参数
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            pageNum: 1, //初始化加载第一页，默认第一页
+            pageSize: 8, //每页的记录行数（*）
+            pageList: [10], //可供选择的每页的行数（*）
+            search: false, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: true, //是否显示所有的列
+            showRefresh: true, //是否显示刷新按钮
+            minimumCountColumns: 2, //最少允许的列数
+            // clickToSelect: true, //是否启用点击选中行
+            // height: $(window).height(), //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+            uniqueId: "areaId", //每一行的唯一标识，一般为主键列
+            showToggle: false, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            detailView: false, //是否显示父子表
+            columns: [{
+                checkbox: true
+            }, {
+                field: 'outapplyMaterielId',
+                align: 'center',
+                title: '编号'
+            }, {
+                field: 'outapplyMaterielName',
+                align: 'center',
+                title: '名称'
+            }, {
+                field: 'outapplyMaterielSpec',
+                align: 'center',
+                title: '规格'
+            }, {
+                field: 'outapplyMaterielUnit',
+                align: 'center',
+                title: '单位',
+                // formatter: function(value, row, index) {
+                //     var result = '<select class="form-control" style="width:-webkit-fill-available;" name="unit"></select>';
+
+                //     $.ajax({
+                //         url: port + '/v1/unit/selectUnit',
+                //         type: 'get',
+                //         success: function(res) {
+                //             $.each(res, function(index, item) {
+                //                 $('select[name=unit]').append('<option>' + item.unitName + '</option>');
+
+                //             });
+                //             $('select[name=unit] option').each(function(index, item) {
+                //                 if (item.innerHTML == a[0].materielUnit) {
+                //                     $(this).attr('selected', true);
+                //                 }
+                //             });
+                //         }
+                //     });
+
+
+                //     return result;
+                // }
+            }, {
+                field: 'outapplyMaterielNumbers',
+                align: 'center',
+                title: '数量'
+            }, {
+                field: 'outapplyMaterielRemarks',
+                align: 'center',
+                title: '备注',
+            }],
+
+            //加载成功时执行
+            onLoadSuccess: function(data) {
+                $('.fixed-table-container').css({ 'height': $(window).height() - 190 + 'px' });
+                $('.panel-body').css({ 'height': $(window).height() + 'px' });
+            },
+            //加载失败时执行
+            onLoadError: function() {},
+            onClickRow: function(row, $element) {},
+            onDblClickCell: function(field, value, row, $element) {
+                // console.log(field, value, row, $element)
+                $element.attr('contenteditable', true);
+                $('#tb_departments tr td:nth-child(2)').attr('contenteditable', false);
+                $('#tb_departments tr td:nth-child(3)').attr('contenteditable', false);
+                $('#tb_departments tr td:nth-child(4)').attr('contenteditable', false);
+                $('#tb_departments tr td:nth-child(5)').attr('contenteditable', false);
+                $element.blur(function() {
+                    var index = $element.parent().data('index');
+                    var tdValue = $element.html();
+                    saveData(index, field, tdValue);
+                });
+            }
+        });
+    };
+
+    function saveData(index, field, value) {
+        $('#tb_departments').bootstrapTable('updateCell', {
+            index: index, //行索引
+            field: field, //列名
+            value: value //cell值
+        });
+
+        console.log('编辑后更新',index,field,value);
+    }
+
+
+    //得到查询的参数
+    oTableInit.queryParams = function(params) {
+        var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+            pageSize: params.limit, //页面大小
+            pageNum: (params.offset/params.limit)+1, //页码
+            id:sessionStorage.getItem('amendId')
+        };
+        return temp;
+    };
+
+    return oTableInit;
+};
+
+
+
+
+
+
+// 工具栏按钮事件
+var ButtonInit = function() {
+    var oInit = new Object();
+
+    oInit.Init = function() {
+
+        // 添加完物料后仿刷新数据表格
+        $('#refresh_table').on('click', function() {
+            ids = localStorage.getItem('addWuliao').split(',').toString();
+            console.log(ids);
+            $("#tb_departments").bootstrapTable('refresh');
+        });
+
+        // 添加物料弹窗
+        $("#btn_add_stuff").on('click', function() {
+            var receive_department=$('#apply_department').val()//领料部门
+            var out_department=$('#out_department').val()//出料部门
+
+            sessionStorage.setItem('receive_department', receive_department)//领料部门存缓存
+            sessionStorage.setItem('out_department', out_department)//出料部门存缓存
+
+            parent.layer.open({
+                type: 2,
+                title: '查询',
+                area: ['800px', '500px'],
+                btn: ['确定', '取消'],
+                end:function(){
+                    localStorage.removeItem('addWuliao');
+                    sessionStorage.removeItem('receive_department');//清除领料部门存缓存
+                    sessionStorage.removeItem('out_department');//清除出料部门存缓存
+                },
+                yes: function(index, layero) {
+                    // 点击弹层确定执行iframe内的确定按钮事件
+                    var body = parent.layer.getChildFrame('body', index);
+                    body[0].querySelector('#btn_sure').click();
+
+                    $('#refresh_table').click();
+
+                    $.ajax({
+                        url: port + '/v1/materielOutapply/getOutapplyMateriel',
+                        type: 'get',
+                        data: {
+                            ids: localStorage.getItem('addWuliao').split(',').toString()
+                        },
+                        success: function(res) {
+                            console.log(res);
+                            localStorage.removeItem('addWuliao');
+                            parent.layer.close(index); //关闭当前弹层
+                        }
+                    });
+
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                },
+                btnAlign: 'c',
+                content: 'addIframe2.html'
+            });
+        });
+
+
+        // 添加
+        // $("#btn_add").on('click', function() {
+        //     console.log('添加');
+        //     // 在父窗口打开
+        //     parent.layer.open({
+        //         type: 1,
+        //         title: '查询',
+        //         area: ['400px', '430px'],
+        //         btn: ['确定', '取消'],
+        //         yes: function(index, layero) {
+        //             console.log('确定2');
+        //             var orgUp = layero.find('input[name="orgUp"]'); //上级机构
+        //             var orgNumber = layero.find('input[name="orgNumber"]'); //编号
+        //             var orgName = layero.find('input[name="orgName"]'); //机构名称
+        //             var orgSimpleName = layero.find('input[name="orgSimpleName"]'); //机构简称
+        //             var orgPerson = layero.find('input[name="orgPerson"]'); //负责人
+        //             var orgPhone = layero.find('input[name="orgPhone"]'); //联系电话
+        //             var remarks = layero.find('textarea[name="remarks"]'); //备注
+
+
+        //             if (orgUp.val() == '') {
+        //                 layer.msg('请选择上级机构');
+        //                 return;
+        //             }
+
+        //             $.ajax({
+        //                 url: port + '/organize/add',
+        //                 type: 'post',
+        //                 data: {
+        //                     parentCode: upOrgId,
+        //                     orgCode: orgNumber.val(),
+        //                     orgName: orgName.val(),
+        //                     orgSimpleName: orgSimpleName.val(),
+        //                     chargePerson: orgPerson.val(),
+        //                     phone: orgPhone.val(),
+        //                     remarks: remarks.val()
+        //                 },
+        //                 success: function(data) {
+        //                     console.log('添加成功' + data);
+        //                     $("#tb_departments").bootstrapTable('refresh');
+        //                     location.reload();
+        //                 }
+        //             });
+
+        //             layer.msg('添加成功');
+        //             layer.close(index);
+        //         },
+        //         success: function(layero, index) {
+        //             layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+        //         },
+        //         btnAlign: 'c',
+        //         content: '<div class="modal-body table-layer" style="padding: 0;margin: 0 20px;z-index: 10">' +
+        //             '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //             '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //             '<label for="orgCode"><i class="must-star">*</i>编号：</label>' +
+        //             '</div>' +
+        //             '<div class="col-md-9" style="padding: 0;margin: 0">' +
+        //             '<input autocomplete="off" name="supplierName" type="text" class="form-control" />' +
+        //             '</div>' +
+        //             '</div>' +
+        //             '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //             '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //             '<label for="orgCode"><i class="must-star">*</i>名称：</label>' +
+        //             '</div>' +
+        //             '<div class="col-md-9" style="padding: 0;margin: 0">' +
+        //             '<input autocomplete="off" name="mainProduct" type="text" class="form-control" />' +
+        //             '</div>' +
+        //             '</div>' +
+        //             '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //             '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //             '<label for="orgCode"><i class="must-star">*</i>规格：</label>' +
+        //             '</div>' +
+        //             '<div class="col-md-9" style="padding: 0;margin: 0">' +
+        //             '<input autocomplete="off" name="userName" type="text" class="form-control" />' +
+        //             '</div>' +
+        //             '</div>' +
+        //             '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //             '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //             '<label for="orgCode"><i class="must-star">*</i>单位：</label>' +
+        //             '</div>' +
+        //             '<div class="col-md-9" style="padding: 0;margin: 0">' +
+        //             '<select class="form-control">' +
+        //             '<option>米</option>' +
+        //             '<option>分米</option>' +
+        //             '<option>厘米</option>' +
+        //             '</select>' +
+        //             '</div>' +
+        //             '</div>' +
+        //             '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //             '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //             '<label for="orgCode"><i class="must-star">*</i>数量：</label>' +
+        //             '</div>' +
+        //             '<div class="col-md-9" style="padding: 0;margin: 0">' +
+        //             '<input autocomplete="off" name="address" type="text" class="form-control" />' +
+        //             '</div>' +
+        //             '</div>' +
+        //             '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //             '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //             '<label>备注：</label>' +
+        //             '</div>' +
+        //             '<div class="col-md-9" style="padding: 0;margin: 0;">' +
+        //             '<textarea class="form-control" name="remark" rows="2" style="resize: none;"></textarea>' +
+        //             '</div>' +
+        //             '</div>' +
+        //             '</div>'
+        //     });
+        // });
+
+
+
+        // 修改表格数据
+        // $("#btn_edit").on('click', function() {
+        //     var a = $("#tb_departments").bootstrapTable('getSelections');
+        //     console.log('修改', a[0]);
+        //     if (a.length == 1) {
+
+        //         parent.layer.open({
+        //             type: 1,
+        //             title: '修改',
+        //             area: ['400px', '300px'],
+        //             btn: ['确定', '取消'],
+        //             yes: function(index, layero) {
+        //                 // console.log('确定');
+
+        //                 var unit = layero.find('input[name="unit"]').val(); //单位
+        //                 var amount = layero.find('input[name="amount"]').val(); //数量
+        //                 var remark = layero.find('textarea[name="remark"]').val(); //备注
+
+        //                 if (unit == '') {
+        //                     layer.msg('请选择单位');
+        //                     return;
+        //                 }
+        //                 if (amount == '') {
+        //                     layer.msg('请输入数量');
+        //                     return;
+        //                 }
+
+
+
+        //                 // $.ajax({
+        //                 //     url: port + '/organize/edit',
+        //                 //     type: 'post',
+        //                 //     data: {
+        //                 //         orgId: a[0].orgId,
+        //                 //         parentCode: upOrgId,
+        //                 //         orgCode: orgNumber.val(),
+        //                 //         orgName: orgName.val(),
+        //                 //         orgSimpleName: orgSimpleName.val(),
+        //                 //         chargePerson: orgPerson.val(),
+        //                 //         phone: orgPhone.val(),
+        //                 //         remarks: remarks.val()
+        //                 //     },
+        //                 //     success: function(data) {
+        //                 //         console.log('修改成功' + data);
+        //                 //         $("#tb_departments").bootstrapTable('refresh');
+        //                 //         location.reload();
+        //                 //     }
+        //                 // });
+
+        //                 // layer.msg('修改成功');
+        //                 // layer.close(index);
+        //             },
+        //             success: function(layero, index) {
+        //                 layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+
+        //                 // 获取查询单位
+        //                 $.ajax({
+        //                     url: port + '/v1/unit/selectUnit',
+        //                     type: 'get',
+        //                     success: function(res) {
+        //                         $.each(res, function(index, item) {
+        //                             layero.find('#unit').append('<option>' + item.unitName + '</option>');
+
+        //                         });
+        //                         layero.find('select[name=unit] option').each(function(index, item) {
+        //                             if (item.innerHTML == a[0].materielUnit) {
+        //                                 $(this).attr('selected', true);
+        //                             }
+        //                         });
+        //                     }
+        //                 });
+        //             },
+        //             btnAlign: 'c',
+        //             content: '<div class="modal-body table-layer" style="padding: 0;margin: 0 20px;z-index: 10">' +
+        //                 '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //                 '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //                 '<label for="orgCode"><i class="must-star">*</i>单位：</label>' +
+        //                 '</div>' +
+        //                 '<div class="col-md-9" style="padding: 0;margin: 0">' +
+        //                 '<select class="form-control" id="unit">' +
+        //                 '</select>' +
+        //                 '</div>' +
+        //                 '</div>' +
+        //                 '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //                 '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //                 '<label for="orgCode"><i class="must-star">*</i>数量：</label>' +
+        //                 '</div>' +
+        //                 '<div class="col-md-9" style="padding: 0;margin: 0">' +
+        //                 '<input autocomplete="off" type="text" class="form-control" value="' + a[0].applyMaterielNumber + '" id="amount" />' +
+        //                 '</div>' +
+        //                 '</div>' +
+        //                 '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+        //                 '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+        //                 '<label>备注：</label>' +
+        //                 '</div>' +
+        //                 '<div class="col-md-9" style="padding: 0;margin: 0;">' +
+        //                 '<textarea class="form-control" name="remark" rows="2" style="resize: none;"></textarea>' +
+        //                 '</div>' +
+        //                 '</div>' +
+        //                 '</div>'
+        //         });
+
+
+        //     } else {
+        //         layer.msg('请选择单行数据');
+        //     }
+        // });
+
+
+        // 删除表格数据
+        $("#btn_delete").on('click', function() {
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            var delData = []; //要删除的数据
+
+
+            if (a.length == 0) {
+                layer.msg('请选择要删除的数据');
+            } else {
+                //获取选中的ID
+                for (var i = 0; i < a.length; i++) {
+                    delData[i] = a[i];
+                }
+                console.log('删除>>>', delData);
+
+
+                // parent.layer.open({
+                //     type: 1,
+                //     title: '提示',
+                //     area: ['300px', '200px'],
+                //     btn: ['确定', '取消'],
+                //     success: function(layero, index) {
+                //         layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                //     },
+                //     yes: function(index, layero) {
+                //         console.log('确定');
+                //         layer.close(index);
+                //     },
+                //     btnAlign: 'c',
+                //     content: '<div style="margin:20px">确定要删除选中的数据?</div>'
+                // });
+
+            }
+        });
+
+
+        // 选择
+        $("#btn_select").on('click', function() {
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            var delData = []; //要删除的数据
+
+            var apply_person=$('#apply_person').val();//申请人员
+            var apply_work_number=$('#apply_work_number').val();//工号
+            var apply_department=$('#apply_department').val();//领料部门
+            var export_department=$('#out_department').val();//出料部门
+            var applyNum=$('#applyNum').val();//申请单号
+            var apply_date=$('#apply_date').val();//申请日期
+            var amList=[];//添加的物料单;
+
+
+
+            if (a.length == 0) {
+                layer.msg('请选择要提交的数据');
+                return;
+            } else {
+                //获取选中的ID
+                for (var i = 0; i < a.length; i++) {
+                    delData[i] = a[i];
+                    delete delData[i]['0'];
+                    if (delData[i].outapplyMaterielNumbers==null) {
+                        layer.msg('请输入数量');
+                        return;
+                    }
+                }
+                console.log('提交的数据', delData);
+                sessionStorage.setItem('submitData', delData);
+
+                $.ajax({
+                    url:port+'/v1/materielOutapply/updateOutapplybuy',
+                    type:'post',
+                    data:{
+                        id:sessionStorage.getItem('amendId'),
+                        oamlist:JSON.stringify(delData)
+                    },
+                    success:function(res){
+                        console.log(res);
+                        sessionStorage.setItem('amendResult', res);
+                        $("#tb_departments").bootstrapTable('refresh');
+                    }
+                });
+
+
+            }
+        });
+
+
+    };
+    return oInit;
+};

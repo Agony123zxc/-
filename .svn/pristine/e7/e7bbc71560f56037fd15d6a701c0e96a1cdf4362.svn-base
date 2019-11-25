@@ -1,0 +1,427 @@
+var assetsName = ''; //资产名称
+var assetsList = ''; //勾选的资产
+var alreadyAssets = ''; //已存在的资产
+var reg = /^\+?[1-9]\d*$/; //正则判断大于0的正整数
+
+
+    // 树状菜单
+    function getTree() {
+    
+        var tree = "";
+        $.ajax({
+            url: 'tree.json',
+            type: 'get',
+            async: false,
+            success: function(data) {
+                console.log('树状', data);
+                tree = JSON.stringify(data.data);
+            }
+        });
+        return tree;
+    }
+$(function() {
+
+
+
+    //1.初始化Table
+    var oTable = new TableInit();
+    oTable.Init();
+
+    // //2.初始化Button的点击事件
+    var oButtonInit = new ButtonInit();
+    oButtonInit.Init();
+
+
+    // 获取登录用户
+    $.ajax({
+        url: port + '/v1/applybuyAsset/getCurrentUser',
+        type: 'post',
+        success: function(res) {
+            console.log('模拟登陆用户：', res);
+            $('#applyPerson').attr('value', res.pName); //申请人员
+            $('#personJobNumber').attr('value', res.pJobnum); //人员工号
+            $('#applyDepartment').attr('value', res.depId); //申请部门
+            // $('#applyDepartment').attr('name', res.depId); //申请id
+        }
+    });
+
+
+    // 申请单号
+    $.ajax({
+        url: port + '/v1/assetsScrap/getScrapNo',
+        type: 'post',
+        success: function(res) {
+            console.log('申请单号', res);
+            $('#applyListNum').attr('value', res);
+        }
+    });
+
+    // 申请日期
+    $('#applyDate').attr('value', getDate());
+
+    // 获取系统日期
+    function getDate() {
+        var myDate = new Date();
+        var myYear = myDate.getFullYear(); //年
+        var myMonth = myDate.getMonth() + 1; //月
+        var myDay = myDate.getDate(); //日
+        var myHour = myDate.getHours(); //时
+        var myMin = myDate.getMinutes(); //分
+
+        if (myMonth < 10) {
+            myMonth = '0' + myMonth;
+        }
+        if (myDate < 10) {
+            myDate = '0' + myDate;
+        }
+        if (myHour < 10) {
+            myHour = '0' + myHour;
+        }
+        if (myMin < 10) {
+            myMin = '0' + myMin;
+        }
+        return myYear + '-' + myMonth + '-' + myDay + ' ' + myHour + ':' + myMin;
+    }
+
+
+});
+
+//查询
+function searchBtn() {
+    console.log('查询');
+    if ($('#orgName').val() == '' && $('#orgSimpleName').val() == '') {
+        return;
+    }
+    $("#tb_departments").bootstrapTable('refresh');
+}
+//重置
+function resetBtn() {
+    console.log('重置');
+    location.reload();
+}
+var listDis;
+//初始化Table
+var TableInit = function() {
+    var oTableInit = new Object();
+    oTableInit.Init = function() {
+        $('#tb_departments').bootstrapTable({
+            url: port + '/v1/assetsScrap/findListSwitch',
+            undefinedText: '',
+            method: 'get',
+            locale: 'zh-CN',
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true, //是否显示分页（*）
+            sortable: true, //是否启用排序
+            sortOrder: "asc", //排序方式
+            queryParams: oTableInit.queryParams, //查询参数
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            pageNum: 1, //初始化加载第一页，默认第一页
+            pageSize: 10, //每页的记录行数（*）
+            pageList: [10], //可供选择的每页的行数（*）
+            search: false, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: true, //是否显示所有的列
+            showRefresh: true, //是否显示刷新按钮
+            minimumCountColumns: 2, //最少允许的列数
+            // clickToSelect: true, //是否启用点击选中行
+            // height: $(window).height(), //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+            uniqueId: "areaId", //每一行的唯一标识，一般为主键列
+            showToggle: false, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            detailView: false, //是否显示父子表
+            columns: [{
+                checkbox: true
+            }, {
+                field: 'name',
+                align: 'center',
+                title: '资产名称'
+            }, {
+                field: 'type',
+                align: 'center',
+                title: '资产类别'
+            }, {
+                field: 'assetNum',
+                align: 'center',
+                title: '报废数量',
+            }, {
+                field: 'unit',
+                align: 'center',
+                title: '单位'
+            },{
+                field: 'price',
+                align: 'center',
+                title: '单价'
+            }],
+
+            //加载成功时执行
+            onLoadSuccess: function(data) {
+                console.log(data)
+                $('.fixed-table-container').css({ 'height': $(window).height() - 230 + 'px' });
+                $('.panel-body').css({ 'height': $(window).height() + 'px' });
+                
+            },
+            //加载失败时执行
+            onLoadError: function() {},
+            onClickRow: function(row, $element) {
+                console.log(row);
+                listDis=row;
+            },
+            onDblClickCell: function(field, value, row, $element) {
+                // console.log(field, value, row, $element)
+                $element.attr('contenteditable', true);
+                $('#tb_departments tr td:nth-child(2)').attr('contenteditable', false);
+                $('#tb_departments tr td:nth-child(3)').attr('contenteditable', false);
+                // $('#tb_departments tr td:nth-child(5)').attr('contenteditable', false);
+                $('#tb_departments tr td:nth-child(6)').attr('contenteditable', false);
+                $element.blur(function() {
+                    var index = $element.parent().data('index');
+                    var tdValue = $element.html();
+                    
+                    console.log(tdValue)
+                    saveData(index, field, tdValue);
+                });
+            }
+        });
+    };
+
+    function saveData(index, field, value) {
+        $('#tb_departments').bootstrapTable('updateCell', {
+            index: index, //行索引
+            field: field, //列名
+            value: value //cell值
+        });
+
+        console.log('编辑后更新>>>', index, field, value);
+    }
+
+
+    //得到查询的参数
+    oTableInit.queryParams = function(params) {
+        var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+            // pageSize: params.limit, //页面大小
+            // pageNum: (params.offset / params.limit) + 1, //页码
+            // assetType: assetsName, //资产名称
+            // assetListString: assetsList, //勾选的资产
+            // alreadyAssetListString: alreadyAssets, //已存在的资产
+            oldStr:alreadyAssets,//
+            newStr:assetsList//获取的次级弹窗选择内容
+        };
+        return temp;
+    };
+
+    return oTableInit;
+};
+
+
+
+
+
+
+// 工具栏按钮事件
+var ButtonInit = function() {
+    var oInit = new Object();
+
+    oInit.Init = function() {
+        // 添加
+        $("#btn_add").on('click', function() {
+
+            //获取所有行数据赋值给已存在的数据
+            alreadyAssets = JSON.stringify($("#tb_departments").bootstrapTable('getData'));
+
+            sessionStorage.setItem('alreadyAssets', alreadyAssets); //已存在的资产存入缓存
+
+            parent.layer.open({
+                type: 2,
+                title: '查询',
+                area: ['900px', '500px'],
+                btn: ['确定', '取消'],
+                end: function() {
+                    sessionStorage.removeItem('assetsName');
+                    sessionStorage.removeItem('assetsList');
+                    sessionStorage.removeItem('alreadyAssets');
+                },
+                yes: function(index, layero) {
+                    // 点击弹层确定执行iframe内的确定按钮事件
+                    var body = parent.layer.getChildFrame('body', index);
+                    body[0].querySelector('#btn_select').click();
+
+                    assetsName = sessionStorage.getItem('assetsName');
+                    assetsList = sessionStorage.getItem('assetsList');
+                    alreadyAssets = sessionStorage.getItem('alreadyAssets');
+
+                    $("#tb_departments").bootstrapTable('refresh');
+
+                    if (sessionStorage.getItem('assetsList')) {
+                        parent.layer.close(index);
+                    }
+
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                },
+                btnAlign: 'c',
+                content: 'search.html'
+            });
+        });
+
+
+
+        // 删除表格数据
+        $("#btn_delete").on('click', function() {
+
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            var allData = $("#tb_departments").bootstrapTable('getData');
+
+            var delData = []; //要删除的数据
+            console.log(a)
+
+            if (a.length == 0) {
+                layer.msg('请选择要删除的数据');
+            } else {
+                //获取选中的ID
+                for (var i = 0; i < a.length; i++) {
+                    delData[i] = a[i].id;
+                }
+                // console.log('删除>>>', delData);
+
+                var resultData = allData.filter(function(item) {
+                    return !delData.includes(item.id);
+                });
+
+                console.log('反选勾选删除的其他所有数据：', resultData);
+
+                $.ajax({
+                    url: port + '/v1/assetsScrap/findListSwitch',
+                    type: 'get',
+                    data: {
+                        oldStr: JSON.stringify(resultData)
+                    },
+                    success: function(res) {
+                        console.log(res);
+                        if (resultData.length == 0) {
+                            assetsList = '';
+                        } else {
+                            assetsList = JSON.stringify(resultData);
+                        }
+
+                        $("#tb_departments").bootstrapTable('refresh');
+
+                    }
+                });
+
+            }
+        });
+        var dispic;
+        $(document).ready(function() {
+            $(".misBtn").click();
+        })
+        //图片上传
+       $('.misBtn').on('click', function() {
+            $.ajax({
+                url: port + "/v1/assetsScrap/importScrapImg",
+                type: 'post',
+                data: new FormData($('#Form')[0]), // 上传formdata封装的数据
+                cache: false, //// 不缓存
+                processData: false, //不处理发送的数据
+                contentType: false, //不设置Content-Type请求头
+                success: function(data) {
+                    console.log(data);
+                    dispic = data
+                }
+            });
+        });
+
+        // 选择
+        $("#btn_select").on('click', function() {
+            console.log('选择');
+            var a = $("#tb_departments").bootstrapTable('getData');
+            console.log(a)
+            var selectData = []; //要删除的数据
+
+            var apply_person = $('#apply_person').val(); //申请人员
+            var apply_work_number = $('#apply_work_number').val(); //工号
+            var apply_department = $('#apply_department').val(); //申请部门
+            var applyNum = $('#applyNum').val(); //申请单号
+            var apply_date = $('#apply_date').val(); //申请日期
+            var amList = []; //添加的物料单;
+            
+
+
+
+            //获取选中的ID
+            for (var i = 0; i < a.length; i++) {
+                selectData[i] = a[i];
+                if (selectData[i].assetNum == null) {
+                    layer.msg('请输入数量');
+                    return;
+                }
+                
+                if (!reg.test(selectData[i].assetNum)) {
+                    layer.msg('数量必须是大于0的正整数');
+                    return;
+                }
+                if (selectData[i].assetNum > parseInt(selectData[i].num)) {
+                    layer.msg('数量必须小于库存数量');
+                    return;
+                }
+                console.log(selectData[i].assetNum)
+                console.log(parseInt(selectData[i].num))
+                // if (selectData[i].applyAssetYuliu2 == null) {
+                //     layer.msg('请输入单价');
+                //     return;
+                // }
+                // if (!reg.test(selectData[i].applyAssetYuliu2)) {
+                //     layer.msg('单价必须是大于0的正整数');
+                //     return;
+                // }
+                // if (selectData[i].unit == null) {
+                //     layer.msg('请输入单位');
+                //     return;
+                // }
+                // if (selectData[i].price == null) {
+                //     layer.msg('请输入单价');
+                //     return;
+                // }
+            }
+            // if($("#applyReason").val()==""){
+            //     layer.msg('请输入报废原因');
+            //     return;
+            // }
+
+            console.log('提交的数据', selectData);
+            if (selectData.length == 0) {
+                return;
+            }
+
+            sessionStorage.setItem('alreadySubmit', JSON.stringify(selectData));
+            console.log(selectData)
+            // 提交
+            $.ajax({
+                url: port + '/v1/assetsScrap/scrapSave',
+                type: 'post',
+                data: {
+                    applyPersonName: $('#applyPerson').val(), //申请人
+                    applyDeptName: $('#applyDepartment').val(), //申请部门
+                    scrapNo: $('#applyListNum').val(), //报废单号
+                    applyReason: $('#applyReason').val(), //申请理由
+                    scrapDtlList: JSON.stringify(selectData), //申请单列表
+                    applyPersonId:localStorage.getItem('pJobnum'),//工号
+                    annexurl:dispic,//图片路径
+                    applyDeptId:""//申请部门id
+                    // file:
+                },
+                success: function(res) {
+                    console.log(res)
+
+                }
+            });
+
+
+        });
+
+
+    };
+    return oInit;
+};

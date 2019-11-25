@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>供应商管理</title>
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/Ionicons/css/ionicons.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/bootstrap-treeview.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-table/dist/bootstrap-table.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-fileinput/css/fileinput.css" />
+    <link rel="stylesheet" href="../../static/dist/css/scollstyle.css">
+    <link rel="stylesheet" href="../../css/common.css" />
+    <script src="../../static/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../../static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table-locale-all.min.js"></script>
+    <script src="../../static/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="../../static/dist/js/adminlte.min.js"></script>
+    <script src="../../static/dist/js/bootstrap-treeview.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/fileinput.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/locales/zh.js"></script>
+    <script type="text/javascript" src="../../static/bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js"></script>
+    <script type="text/javascript" src="../../static/dist/js/pack/tabsetting.js"></script>
+    <script type="text/javascript" src="../../static/dist/layer/layer.js"></script>
+    <script type="text/javascript" src="../../static/dist/laydate/laydate.js"></script>
+    <script type="text/javascript" src="../../js/common.js"></script>
+    <style>
+        .treeview span.icon{
+            font-size: 20px;
+        }
+        
+
+        .panel.panel-default::-webkit-scrollbar {  /* 滚动条整体部分 */
+            width:4px;
+            margin-right:2px
+        }
+        .panel.panel-default::-webkit-scrollbar-button { /* 滚动条两端的按钮 */
+            width:4px;
+            background-color: #fff;
+        }
+        .panel.panel-default::-webkit-scrollbar:horizontal {
+            height:5px;
+            margin-bottom:2px
+        }
+        .panel.panel-default::-webkit-scrollbar-track {  /* 外层轨道 */
+            border-radius: 2px;
+        }
+        .panel.panel-default::-webkit-scrollbar-track-piece {  /*内层轨道，滚动条中间部分 */
+            background-color:#EDF2F8;
+            border-radius: 2px;
+        }
+        .panel.panel-default::-webkit-scrollbar-thumb {  /* 滑块 */
+            width:4px;
+            border-radius: 2px;
+            background: #27AAE1;
+        }
+        .panel.panel-default::-webkit-scrollbar-corner { /* 边角 */
+            width: 4px;
+            background-color: red;
+        }
+        .panel.panel-default::-webkit-scrollbar-thumb:hover { /* 鼠标移入滑块 */
+            background: #27AAE1;
+        }
+        .list-group-item.node-tree{
+            border: none;
+        }
+        .list-group-item.node-tree{
+            padding: 0px;
+        }
+        .node-selected{
+            color: #000!important;
+            font-weight: 700!important;
+            background-color: #fff!important;
+        }
+        .icon.expand-icon.glyphicon.glyphicon-plus{
+            margin-left: 3px;
+        }
+        .columns.columns-right.btn-group.pull-right {
+            margin-top: 15px;
+        }
+       
+        
+        .bs-bars.pull-left{
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-control{padding: 0;width: 165px;}
+
+
+        .columns.columns-right.btn-group.pull-right{display: none !important;}
+
+        .fixed-table-container{height: 210px;}
+        label{width: 60px;text-align: right;}
+        .upload-file input[type=file]{display: inline-block;}
+        #formSearch .form-control{width:215px;}
+        .form-group{display:flex;align-items:center;}
+    </style>
+</head>
+
+<body>
+    <div id="content" class="row-fluid" style="height:100%;background: #fff;">
+        <div class="col-md-12 col-xs-12" style="background-color: #fff;">
+            <div class="panel-body" style="margin: 0;padding: 0">
+                <div id="formSearch" class="form-inine clearfix">
+                    <div class="form-inline" style="display:flex;flex-wrap:wrap;justify-content:space-between;">
+                        <div class="form-group">
+                            <label>报废单号</label>
+                            <input readonly type="text" name="" class="form-control" id="applyListNum">
+                        </div> 
+                        <div class="form-group">
+                            <label>报废日期</label>
+                            <input readonly type="text" name="" class="form-control" id="applyDate">
+                        </div>
+                        <div class="form-group">
+                            <label>申请人</label>
+                            <input readonly type="text" name="" class="form-control" id="applyPerson">
+                        </div>
+                        <div class="form-group">
+                            <label>申请部门</label>
+                            <input readonly type="text" name="" class="form-control" id="applyDepartment">
+                            <!-- <select name="" id="applyDepartment1" class="form-control">
+                                <option value="">财务部</option>
+                                <option value="">技术部</option>    
+                            </select> -->
+                            <!-- <input autocomplete="off" style="background-color: #fff;" readonly type="text" id="applyDepartment1" class="form-control" value="">
+                            <div style="position: absolute;width: 217px;right: 24px;top: 88px;display: none;height: 270px;z-index: 99;overflow: auto;" id="treeviews">'
+                            </div> -->
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>报废原因</label>
+                            <input type="text" name="" style="width: 509px;" class="form-control" id="applyReason">
+                        </div> 
+                        <!-- <span class="btn-group">
+                            <a class="btn btn-primary" href="javascript:;" onclick="searchBtn()">查询</a>
+                            <a class="btn btn-default" href="javascript:;" onclick="resetBtn()">重置</a>
+                        </span> -->
+                    </div>
+                </div>
+                <!-- 表格工具栏 -->
+                <div id="toolbar" class="btn-group">
+                    <button id="btn_add" type="button" class="btn btn-primary">添加</button>
+                    <!-- <button id="btn_add" type="button" class="btn btn-primary">添加</button> -->
+                    <!-- <button id="btn_edit" type="button" class="btn btn-primary">修改</button> -->
+                    <button id="btn_delete" type="button" class="btn btn-danger del">删除</button>
+                    <button id="btn_select" type="button" class="btn btn-primary" style="display:none;">选择</button>
+                    <button id="refresh_table" type="button" class="btn btn-primary" style="display:none;">刷新表格数据</button>
+                </div>
+                <!-- 数据表格 -->
+                <table id="tb_departments"></table>
+                <div class="upload-file" style="display:flex;">
+                    <span>上传文件：</span>
+                    <form enctype="multipart/form-data" id="Form">
+                        <input accept="image/*" multiple type="file" name="file">
+                        <a href="javascript:;" class="btn misBtn" style="display:none">提交</a>
+                        </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="./amend.js"></script>
+    <script type="text/javascript">
+    </script>
+</body>
+
+</html>

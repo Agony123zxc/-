@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>供应商管理</title>
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/Ionicons/css/ionicons.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="../../static/dist/css/bootstrap-treeview.min.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-table/dist/bootstrap-table.css">
+    <link rel="stylesheet" href="../../static/bower_components/bootstrap-fileinput/css/fileinput.css" />
+    <link rel="stylesheet" href="../../css/common.css" />
+    
+    <style>
+    .treeview span.icon{font-size:20px;}
+    .list-group-item.node-tree{border:none;}
+    .list-group-item.node-tree{padding:0px;}
+    .node-selected{color:#000!important;font-weight:700!important;background-color:#fff!important;}
+    .icon.expand-icon.glyphicon.glyphicon-plus{margin-left:3px;}
+    .columns.columns-right.btn-group.pull-right{margin-top:15px;}
+    .bs-bars.pull-left{margin-top:10px;margin-bottom:10px;}
+    .columns.columns-right.btn-group.pull-right{display:none!important;}
+    .fixed-table-container{height:210px;}
+    .fixed-table-toolbar{display:none;}
+    #formSearch{margin-bottom:10px;}
+    .form-control[readonly]{background:#fff;border:none;}
+    body{background:#fff;overflow:auto;}
+    #formSearch .form-control{width:175px;}
+    label{width:100px;text-align:right;}
+
+    /* 自定义数据表格 */
+    .table-customize{width:100%;margin-bottom:20px;}
+    .table-customize tr:nth-child(1){background:#F4F4F5;}
+    .table-customize td{border:1px solid #ddd;padding:8px;text-align:center;position:relative;}
+    .table-customize td input{border:none;outline:none;text-align:center;}
+    .form-control{border:none;height:auto;}
+    
+    </style>
+</head>
+
+<body>
+    <div id="content" class="row-fluid print-wrap" style="height:100%;">
+        <div class="col-md-12 col-xs-12" style="background-color: #fff;">
+            <div class="panel-body" style="margin: 0;padding: 0">
+                <div id="formSearch" class="form-inine clearfix">
+                    <div class="form-inline">
+                        <div class="form-group" style="display: inline-block;">
+                            <label>申请人员：</label>
+                            <input readonly style="border: none;" type="text" name="username" class="form-control" id="applyPerson">
+                        </div>
+                        <div class="form-group" style="display: inline-block;">
+                            <label>申请部门：</label>
+                            <input readonly style="border: none;" type="text" name="username" class="form-control" id="applyDepart">
+                        </div>
+                        <div class="form-group" style="display: inline-block;">
+                            <label>申请单号：</label>
+                            <input readonly style="border: none;" type="text" name="username" class="form-control" id="applyNum">
+                        </div>
+                        <div class="form-group" style="display: inline-block;">
+                            <label>申请日期：</label>
+                            <input readonly style="border: none;" type="text" name="username" class="form-control" id="applyDate">
+                        </div>
+                        <div class="form-group" style="display: inline-block;">
+                            <label>项目必要性：</label>
+                            <div style="width: 830px;border: none;" class="form-control" id="project-necessity"></div>
+                        </div>
+                        <div class="form-group" style="display: inline-block;">
+                            <label>项目具体要求：</label>
+                            <div style="width: 830px;border: none;" class="form-control" id="project-requre"></div>
+                        </div>
+                       
+                    </div>
+                </div>
+               
+               
+                  <!-- 自定义数据表格 -->
+                <table class="table-customize" style="margin-top: -20px;">
+                    <tr>
+                        <td>项目名称</td>
+                        <td>联系电话</td>
+                        <td>预算金额（元）</td>
+                        <td>完成时限</td>
+                    </tr>
+                    <tr>
+                        <td><input readonly autocomplete="off" type="text" name="" id="project-name"></td>
+                        <td><input readonly autocomplete="off" type="text" name="" id="phone"></td>
+                        <td><input readonly autocomplete="off" type="text" name="" id="price"></td>
+                        <td><input readonly autocomplete="off" type="text" name="" id="done-time"></td>
+                    </tr>
+                </table>
+                <!-- 流程 -->
+                <div class="approval-progress">
+                    <ul>
+                       
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a id="print_btn" class="btn btn-primary" href="javascript:;" onclick="printBtn()" style="display: none;">打印</a>
+    <script src="../../static/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../../static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table.js"></script>
+    <script src="../../static/bower_components/bootstrap-table/dist/bootstrap-table-locale-all.min.js"></script>
+    <script src="../../static/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="../../static/dist/js/adminlte.min.js"></script>
+    <script src="../../static/dist/js/bootstrap-treeview.min.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/fileinput.js"></script>
+    <script src="../../static/bower_components/bootstrap-fileinput/js/locales/zh.js"></script>
+    <script type="text/javascript" src="../../static/bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js"></script>
+    <script type="text/javascript" src="../../static/dist/js/pack/tabsetting.js"></script>
+    <script type="text/javascript" src="../../static/dist/layer/layer.js"></script>
+    <script type="text/javascript" src="../../static/dist/laydate/laydate.js"></script>
+    <script type="text/javascript" src="../../js/common.js"></script>
+    <script src="./detail.js"></script>
+    <script type="text/javascript">
+    </script>
+</body>
+
+</html>

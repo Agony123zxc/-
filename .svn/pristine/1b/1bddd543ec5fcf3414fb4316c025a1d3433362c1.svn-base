@@ -1,0 +1,844 @@
+var reg = /^[1][3,4,5,7,8][0-9]{9}$/; //手机号格式验证
+
+$(function() {
+
+
+
+    // // 提示需要入库单弹窗
+    // layer.open({
+    //     type: 1,
+    //     title: ['提示', 'color:#fff'],
+    //     area: ['300px', '200px'],
+    //     shade: 0,
+    //     offset: ['37%', '75%'],
+    //     content: '<div style="margin:20px;">你有<span style="color:#FF4848;">2</span>条入库单需要入库</div>',
+    //     success: function(layero, index) {
+    //         layero.find('.layui-layer-title').css('background', '#27aae1');
+    //     }
+    // });
+
+    // // 提示需要出库单弹窗
+    // layer.open({
+    //     type: 1,
+    //     title: ['提示', 'color:#fff'],
+    //     area: ['300px', '200px'],
+    //     shade: 0,
+    //     offset: ['68%', '75%'],
+    //     content: '<div style="margin:20px;">你有<span style="color:#FF4848;">2</span>条出库单需要出库</div>',
+    //     success: function(layero, index) {
+    //         layero.find('.layui-layer-title').css('background', '#27aae1');
+    //     }
+    // });
+
+
+
+    //1.初始化Table
+    var oTable = new TableInit();
+    oTable.Init();
+
+    //2.初始化Button的点击事件
+    var oButtonInit = new ButtonInit();
+    oButtonInit.Init();
+
+    // 获取仓库下拉
+    $.ajax({
+        url: port + '/v1/depot/selectDepot',
+        type: 'get',
+        success: function(res) {
+            console.log('仓库下拉：', res);
+            $.each(res, function(i, a) {
+                $('#storehouse').append('<option value=' + a.depotName + '>' + a.depotName + '</option>');
+            });
+        }
+    });
+
+
+    // 获取部门下拉
+    $.ajax({
+        url: port + '/v1/organize/seleOrganizes',
+        type: 'get',
+        success: function(res) {
+            console.log('部门下拉', res);
+            $.each(res, function(i, a) {
+                $('#department').append('<option value=' + a.orgName + '>' + a.orgName + '</option>');
+            });
+        }
+    })
+
+
+});
+
+//查询
+function searchBtn() {
+    $("#tb_departments").bootstrapTable('refresh');
+}
+//重置
+function resetBtn() {
+    location.reload();
+}
+
+
+
+
+//初始化Table
+var TableInit = function() {
+    var oTableInit = new Object();
+    oTableInit.Init = function() {
+        $('#tb_departments').bootstrapTable({
+            url: port + '/v1/materindepot/findMateriel',
+            method: 'get',
+            locale: 'zh-CN',
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true, //是否显示分页（*）
+            sortable: true, //是否启用排序
+            sortOrder: "asc", //排序方式
+            queryParams: oTableInit.queryParams, //查询参数
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            pageNum: 1, //初始化加载第一页，默认第一页
+            pageSize: 10, //每页的记录行数（*）
+            pageList: [10], //可供选择的每页的行数（*）
+            search: false, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: true, //是否显示所有的列
+            showRefresh: true, //是否显示刷新按钮
+            minimumCountColumns: 2, //最少允许的列数
+            clickToSelect: true, //是否启用点击选中行
+            // height: $(window).height(), //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+            uniqueId: "areaId", //每一行的唯一标识，一般为主键列
+            showToggle: false, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            detailView: false, //是否显示父子表
+            columns: [{
+                    checkbox: true
+                }, {
+                    field: 'idNum',
+                    align: 'center',
+                    title: '编号'
+                }, {
+                    field: 'materielType',
+                    align: 'center',
+                    title: '类型'
+                }, {
+                    field: 'materielName',
+                    align: 'center',
+                    title: '名称'
+                }, {
+                    field: 'materielSpec',
+                    align: 'center',
+                    title: '规格'
+                }, {
+                    field: 'materielUnit',
+                    align: 'center',
+                    title: '单位'
+                },
+                {
+                    field: 'materielPrice',
+                    align: 'center',
+                    title: '单价'
+                },
+                {
+                    field: 'materielSum',
+                    align: 'center',
+                    title: '金额'
+                },
+                {
+                    field: 'materielStocknum',
+                    align: 'center',
+                    title: '库存数量'
+                },
+                {
+                    field: 'materielStockmax',
+                    align: 'center',
+                    title: '库存上限'
+                },
+                {
+                    field: 'materielStockmin',
+                    align: 'center',
+                    title: '库存下限'
+                },
+                {
+                    field: 'materielSupplier',
+                    align: 'center',
+                    title: '供应商'
+                },
+                {
+                    field: 'materielDepot',
+                    align: 'center',
+                    title: '仓库'
+                },
+                {
+                    field: 'materielRemarks',
+                    align: 'center',
+                    title: '备注'
+                }
+            ],
+
+            //加载成功时执行
+            onLoadSuccess: function(data) {
+                console.log('成功加载表格数据', data);
+
+                $('.fixed-table-container').css({ 'height': $(window).height() - 220 + 'px' });
+                $('.panel-body').css({ 'height': $(window).height() + 'px' });
+            },
+            //加载失败时执行
+            onLoadError: function() {
+                $('.fixed-table-container').css({ 'height': $(window).height() - 220 + 'px' });
+                $('.panel-body').css({ 'height': $(window).height() + 'px' });
+            },
+            onClickRow: function(row, $element) {}
+        });
+    };
+
+
+
+
+    //得到查询的参数
+    oTableInit.queryParams = function(params) {
+        var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+            pageSize: params.limit, //页面大小
+            pageNum: (params.offset/params.limit)+1, //页码
+            materielName: $('#name').val(), //名称
+            idNum: $('#number').val(), //编号
+            materielType: $('#type').val(), //类型
+            materielYuliu1: $('#department').val(), //部门
+            materielDepot: $('#storehouse').val(), //仓库
+        };
+        return temp;
+    };
+
+
+    return oTableInit;
+};
+
+
+
+
+
+// 导入文件
+var formData = new FormData();
+var name;
+$("#btn_import").on('click', function() {
+    layer.open({
+        type: 1,
+        title: '导入',
+        btn: ['导入', '关闭'],
+        btnAlign: 'c',
+        area: ['470px', '300px'],
+        success: function(layero, index) {
+            // 改变按钮背景色
+            layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+
+            // 导入事件
+            layero.find('input[name=importFile]').change(function(event) {
+                name = $(this).val();
+                formData.append("file", $(this)[0].files[0]);
+                formData.append("name", name);
+                layero.find('.import-file-name').html(name);
+            });
+        },
+        yes: function(index, layero) {
+            $.ajax({
+                url: port + "/v1/materindepot/importDepotMateriel",
+                type: 'post',
+                async: false,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    console.log(res);
+                    $("#tb_departments").bootstrapTable('refresh');
+                    layer.msg('导入成功');
+                    layer.close(index);
+                }
+            });
+
+        },
+        content: '<div class="import-layer">' +
+            '<div class="form-group col-md-12" style="padding: 0;margin: 0;z-index: 10">' +
+            '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+            '<label for="remarks">模板：</label>' +
+            '</div>' +
+            '<div class="col-md-8" style="padding: 0;margin: 0">' +
+            '<a style="margin-left: 8px;" href="' + port + '/v1/materindepot/exportMaterielTemplet">点击下载模板</a>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group col-md-12" style="margin-top: 20px;">' +
+            '<form id="importFile" name="importFile" class="form-horizontal" method="post" enctype="multipart/form-data">' +
+            '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+            '<label class="control-label" style="margin-right: 8px;">选择文件：</label>' +
+            '</div>' +
+            '<div class="col-md-8" style="padding: 0;margin: 0">' +
+            '<div class="import-file-wrap">' +
+            '<div class="import-file-name"></div>' +
+            '<span class="import-file-btn">浏览</span>' +
+            '<input name="importFile" type="file">' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '</div>' +
+            '</div>'
+
+    });
+});
+
+
+// 点击当前行数据详情事件
+window.operateEvents = {
+    'click .info': function(e, value, row, index) {
+        layer.open({
+            type: 2,
+            title: '详情',
+            btn: '关闭',
+            btnAlign: 'c',
+            area: ['800px', '500px'],
+            success: function(layero, index) {
+                var body = layer.getChildFrame('body', index);
+                var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+                // console.log(body.html()) //得到iframe页的body内容
+                // body.find('#formSearch input[name=username]').val('测试')
+                layero.find('.layui-layer-btn0').css({ background: '#fff', color: '#333', borderColor: '#ddd', padding: '0 20px' });
+            },
+            content: 'detail.html'
+
+        });
+        console.log('行数据', row);
+    }
+};
+
+
+
+
+// 工具栏按钮事件
+var ButtonInit = function() {
+    var oInit = new Object();
+    var postdata = {};
+
+    oInit.Init = function() {
+
+        // 线上入库
+        $("#btn_import_warehouse_online").on('click', function() {
+            layer.open({
+                type: 2,
+                title: '线上入库',
+                area: ['800px', '500px'],
+                btn: ['入库', '关闭'],
+                end: function() {
+                    sessionStorage.removeItem('stockApplyId');
+                    sessionStorage.removeItem('selectId');
+                    sessionStorage.removeItem('selectStockData');
+                    sessionStorage.removeItem('importData');
+                },
+                yes: function(index, layero) {
+                    var body = layer.getChildFrame('body', index);
+                    body.find('#btn_import_storehouse').click(); //执行iframe里的入库按钮事件
+ 
+                    if (sessionStorage.getItem('importData')) {
+                        $.ajax({
+                            url: port + '/v1/materindepot/saveIntodepotMateriel',
+                            type: 'post',
+                            data: {
+                                intodepotApplyPerson: body.find('#apply_person').val(), //申请人
+                                intodepotYuliu1: body.find('#work_number').val(), //人员工号
+                                intodepotApplyPersonDepart: body.find('#apply_depart').val(), //申请部门
+                                intodepotApplyTime: body.find('#apply_date').val(), //申请日期
+                                intodepotApplyNum: body.find('#apply_number').val(), //申请单号
+                                materielDepot: body.find('#storehouse').val(), //仓库
+                                materielSupplier: body.find('#supplier').val(), //供应商
+                                idmList: sessionStorage.getItem('importData')
+                            },
+                            success: function(data) {
+                                console.log('入库成功' + data);
+                                if (data > 0) {
+                                    layer.msg('入库成功');
+                                    // setTimeout(function() {
+                                        layer.close(index);
+                                        location.reload();
+                                    // }, 500);
+                                    $("#tb_departments").bootstrapTable('refresh');
+                                    location.reload();
+
+                                }
+
+                            }
+                        });
+                    }
+
+
+
+
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                    var body = layer.getChildFrame('body', index);
+
+
+
+                    // 获取仓库下拉数据
+                    $.ajax({
+                        url: port + '/v1/depot/selectDepot',
+                        type: 'get',
+                        success: function(res) {
+                            console.log('仓库下拉', res);
+                            for (var i = 0; i < res.length; i++) {
+                                body.find('#storehouse')[0].innerHTML += '<option value=' + res[i].depotName + '>' + res[i].depotName + '</option>';
+                            }
+                        }
+                    });
+
+
+                    // 获取供应商下拉数据
+                    $.ajax({
+                        url: port + '/v1/supplier/selectSupplier',
+                        type: 'get',
+                        success: function(res) {
+                            console.log('供应商下拉', res);
+                            for (var i = 0; i < res.length; i++) {
+                                body.find('#supplier')[0].innerHTML += '<option value=' + res[i].supplierName + '>' + res[i].supplierName + '</option>';
+                            }
+                        }
+                    });
+
+
+
+                },
+                btnAlign: 'c',
+                content: 'import_online.html'
+            });
+        });
+
+
+        // 线下入库
+        $("#btn_import_warehouse_offline").on('click', function() {
+            layer.open({
+                type: 2,
+                title: '线下入库',
+                area: ['800px', '500px'],
+                btn: ['入库', '关闭'],
+                end: function() {
+                    sessionStorage.removeItem('stockApplyId');
+                    sessionStorage.removeItem('selectId');
+                    sessionStorage.removeItem('selectStockData');
+                    sessionStorage.removeItem('importData');
+                    sessionStorage.removeItem('ids');
+                },
+                yes: function(index, layero) {
+                    var body = layer.getChildFrame('body', index);
+
+
+                    // console.log('申请人员>>>',body.find('#apply_person').val());
+                    // console.log('人员工号>>>',body.find('#work_number').val());
+                    // console.log('申请部门>>>',body.find('#apply_depart').val());
+                    // console.log('申请单号>>>',body.find('#apply_number').val());
+                    // console.log('仓库>>>',body.find('#storehouse').val());
+                    // console.log('供应商>>>',body.find('#supplier').val());
+
+                    var applyPerson = body.find('#apply_person').val(); //申请人员
+                    var workNumber = body.find('#work_number').val(); //工号
+                    var applyDepart = body.find('#apply_depart').val(); //部门
+                    var applyNum = body.find('#apply_number').val(); //单号
+                    var storehouse = body.find('#storehouse').val(); //仓库
+                    var supplier = body.find('#supplier').val(); //供应商
+
+                    if (applyPerson == '') {
+                        layer.msg('请输入申请人');
+                        return;
+                    }
+
+                    if (workNumber == '') {
+                        layer.msg('请输入申请人工号');
+                        return;
+                    }
+
+                    if (applyDepart == '') {
+                        layer.msg('请输入部门');
+                        return;
+                    }
+
+                    body.find('#btn_import_storehouse').click(); //执行iframe里的入库按钮事件
+
+                    $.ajax({
+                        url: port + '/v1/materindepot/saveMaterileDepotHand',
+                        type: 'post',
+                        data: {
+                            intodepotApplyPerson: applyPerson, //申请人
+                            intodepotYuliu1: workNumber, //人员工号
+                            intodepotApplyPersonDepart: applyDepart, //申请部门
+                            intodepotApplyNum: applyNum, //申请单号
+                            materielDepot: storehouse, //仓库
+                            materielSupplier: supplier, //供应商
+                            idmList: sessionStorage.getItem('importData')
+                        },
+                        success: function(data) {
+                            console.log('入库成功' + data);
+                            if (data > 0) {
+                                layer.msg('入库成功');
+                                layer.close(index);
+                                // setTimeout(function() {
+                                //     location.reload();
+                                // }, 500);
+                                $("#tb_departments").bootstrapTable('refresh');
+                                location.reload();
+                            }
+
+                        }
+                    });
+
+
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                    var body = layer.getChildFrame('body', index);
+
+
+
+                    // 获取仓库下拉数据
+                    $.ajax({
+                        url: port + '/v1/depot/selectDepot',
+                        type: 'get',
+                        success: function(res) {
+                            console.log('仓库下拉', res);
+                            for (var i = 0; i < res.length; i++) {
+                                body.find('#storehouse')[0].innerHTML += '<option value=' + res[i].depotName + '>' + res[i].depotName + '</option>';
+                            }
+                        }
+                    });
+
+
+                    // 获取供应商下拉数据
+                    $.ajax({
+                        url: port + '/v1/supplier/selectSupplier',
+                        type: 'get',
+                        success: function(res) {
+                            console.log('供应商下拉', res);
+                            for (var i = 0; i < res.length; i++) {
+                                body.find('#supplier')[0].innerHTML += '<option value=' + res[i].supplierName + '>' + res[i].supplierName + '</option>';
+                            }
+                        }
+                    });
+
+
+
+                },
+                btnAlign: 'c',
+                content: 'import_offline.html'
+            });
+        });
+
+
+        // 线上出库
+        $("#btn_export_warehouse_online").on('click', function() {
+            console.log('添加');
+            layer.open({
+                type: 2,
+                title: '线上出库',
+                area: ['900px', '520px'],
+                btn: ['出库', '取消'],
+                end: function() {
+                    sessionStorage.removeItem('onlineKucunId');
+                    sessionStorage.removeItem('onlineExportResult');
+                },
+                yes: function(index, layero) {
+                    var body = layer.getChildFrame('body', index);
+                    body.find('#btn_chuku').click();
+
+
+                    setTimeout(function(){
+                        if (sessionStorage.getItem('onlineExportResult')) {
+                            
+                            layer.msg('出库成功');
+                            layer.close(index);
+                            location.reload();
+                        }
+                    },500);
+
+                    $("#tb_departments").bootstrapTable('refresh');
+                    
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+
+                },
+                btnAlign: 'c',
+                content: 'export_online.html'
+            });
+            
+        });
+       
+
+
+        // 线下出库
+        $("#btn_export_warehouse_offline").on('click', function() {
+            console.log('添加');
+            layer.open({
+                type: 2,
+                title: '线下出库',
+                area: ['900px', '520px'],
+                btn: ['出库', '取消'],
+                end: function() {
+                    sessionStorage.removeItem('selectId');
+                    sessionStorage.removeItem('offlineExportResult');
+
+                },
+                yes: function(index, layero) {
+                    var body = layer.getChildFrame('body', index);
+                    body.find('#btn_chuku').click();
+
+                    setTimeout(function(){
+                        if (sessionStorage.getItem('offlineExportResult')) {
+
+                            layer.msg('出库成功');
+                            layer.close(index);
+                            location.reload();
+                        }
+                    },500);
+                   
+                    $("#tb_departments").bootstrapTable('refresh');
+                    
+
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                },
+                btnAlign: 'c',
+                content: 'export_offline.html'
+            });
+        });
+
+
+        // 挂起
+        $('#btn_guaqi').on('click', function() {
+            layer.open({
+                type: 2,
+                title: '挂起',
+                area: ['950px', '500px'],
+                btn: ['关闭'],
+                end: function() {
+
+                },
+                yes: function(index, layero) {
+                    layer.close(index);
+                    $("#tb_departments").bootstrapTable('refresh');
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                },
+                btnAlign: 'c',
+                content: 'guaqi.html'
+            });
+        });
+
+
+
+        // 修改表格数据
+        $("#btn_edit").on('click', function() {
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            console.log('修改', a[0]);
+            if (a.length == 1) {
+
+                layer.open({
+                    type: 1,
+                    title: '修改',
+                    area: ['580px', '410px'],
+                    btn: ['确定', '取消'],
+                    yes: function(index, layero) {
+                        console.log('确定');
+                        var orgUp = layero.find('input[name="orgUp"]'); //上级机构
+                        var orgNumber = layero.find('input[name="orgNumber"]'); //编号
+                        var orgName = layero.find('input[name="orgName"]'); //机构名称
+                        var orgSimpleName = layero.find('input[name="orgSimpleName"]'); //机构简称
+                        var orgPerson = layero.find('input[name="orgPerson"]'); //负责人
+                        var orgPhone = layero.find('input[name="orgPhone"]'); //联系电话
+                        var remarks = layero.find('textarea[name="remarks"]'); //备注
+                        if (orgUp.val() == '') {
+                            layer.msg('请选择上级机构');
+                            return;
+                        }
+                        if (orgNumber.val() == '') {
+                            layer.msg('请输入编号');
+                            return;
+                        }
+                        if (orgName.val() == '') {
+                            layer.msg('请输入机构名称');
+                            return;
+                        }
+                        if (!reg.test(orgPhone.val().trim())) {
+                            layer.msg('电话号码格式不正确');
+                            return;
+                        }
+
+
+
+                        $.ajax({
+                            url: port + '/organize/edit',
+                            type: 'post',
+                            data: {
+                                orgId: a[0].orgId,
+                                parentCode: upOrgId,
+                                orgCode: orgNumber.val(),
+                                orgName: orgName.val(),
+                                orgSimpleName: orgSimpleName.val(),
+                                chargePerson: orgPerson.val(),
+                                phone: orgPhone.val(),
+                                remarks: remarks.val()
+                            },
+                            success: function(data) {
+                                console.log('修改成功' + data);
+                                $("#tb_departments").bootstrapTable('refresh');
+
+                                location.reload();
+                            }
+                        });
+
+                        layer.msg('修改成功');
+                        layer.close(index);
+                    },
+                    success: function(layero, index) {
+                        layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                    },
+                    btnAlign: 'c',
+                    content: `
+                     <div class="modal-body table-layer" style="padding: 0;margin: 0 20px;z-index: 10">
+                            <div class="form-group col-md-6" style="padding: 0;margin: 0;padding-top: 8px;z-index:999">
+                                <div class="col-md-4" style="padding: 0;margin: 0;text-align: right;">
+                                    <label><i class="must-star">*</i>上级机构：</label></div>
+                                <div class="col-md-8" style="padding: 0;margin: 0" style="position: relative;">
+                                    <input autocomplete="off" name="orgUp" style="background-color: #fff;" readonly type="text" id="txt_departmentname" class="form-control" value="${a[0].orgName}">
+                                    <div style="position: absolute;width: 100%;left: 0;top: 33px;" id="treeviews" style="display: none;height: 200px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-4" style="padding: 0;margin: 0;text-align: right;">
+                                    <label><i class="must-star">*</i>编号：</label>
+                                </div>
+                                <div class="col-md-8" style="padding: 0;margin: 0">
+                                    <input autocomplete="off" name="orgNumber" type="text" class="form-control" value="${a[0].orgCode}" />
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-4" style="padding: 0;margin: 0;text-align: right;">
+                                    <label for="orgCode"><i class="must-star">*</i>机构名称：</label>
+                                </div>
+                                <div class="col-md-8" style="padding: 0;margin: 0">
+                                    <input autocomplete="off" value="${a[0].orgName}" name="orgName" type="text" class="form-control" />
+                                </div>
+                            </div>
+                        
+                            <div class="form-group col-md-6" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-4" style="padding: 0;margin: 0;text-align: right;">
+                                    <label>机构简称：</label>
+                                </div>
+                                <div class="col-md-8" style="padding: 0;margin: 0">
+                                    <input readonly autocomplete="off" value="${a[0].orgSimpleName}" name="orgSimpleName" type="text" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-4" style="padding: 0;margin: 0;text-align: right;">
+                                    <label>负责人：</label>
+                                </div>
+                                <div class="col-md-8" style="padding: 0;margin: 0">
+                                    <input autocomplete="off" value="${a[0].chargePerson}" name="orgPerson" type="text" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-4" style="padding: 0;margin: 0;text-align: right;">
+                                    <label>联系电话：</label>
+                                </div>
+                                <div class="col-md-8" style="padding: 0;margin: 0">
+                                    <input autocomplete="off" value="${a[0].phone}" name="orgPhone" type="text" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-2" style="padding: 0;margin: 0;text-align: right;">
+                                    <label>备注：</label>
+                                </div>
+                                <div class="col-md-10" style="padding: 0;margin: 0;">
+                                    <textarea class="form-control" name="remarks" rows="2" style="resize: none;">${a[0].remarks}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                 `
+                });
+
+
+            } else {
+                layer.msg('请选择单行数据');
+            }
+        });
+
+
+        // 删除表格数据
+        $("#btn_delete").on('click', function() {
+            console.log('删除')
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            var delData = []; //要删除的数据
+
+            if (a.length == 0) {
+                layer.msg('请选择要删除的数据');
+            } else {
+                //获取选中的ID
+                for (var i = 0; i < a.length; i++) {
+                    delData[i] = a[i].orgId;
+                }
+                console.log('删除的数据', delData);
+
+                layer.open({
+                    type: 1,
+                    title: '提示',
+                    area: ['300px', '200px'],
+                    btn: ['确定', '取消'],
+                    success: function(layero, index) {
+                        layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                    },
+                    yes: function(index, layero) {
+                        $.ajax({
+                            url: port + '/organize/delete',
+                            type: 'post',
+                            data: {
+                                orgId: delData
+                            },
+                            success: function(data) {
+                                if (data.rescode == '0000') {
+                                    $("#tb_departments").bootstrapTable('refresh'); //刷新表格数据
+
+                                    layer.msg('删除成功');
+                                    location.reload();
+                                }
+                                if (data.rescode == '0001') {
+                                    layer.msg(data.data);
+                                }
+                            }
+                        });
+                        console.log('确定');
+                        layer.close(index);
+                    },
+                    btnAlign: 'c',
+                    content: '<div style="margin:20px">确定要删除选中的数据（如果存在子节点，将会一并删除）?</div>'
+                });
+
+            }
+        });
+
+
+        // 导出（导出所有、选择导出）
+        $("#btn_export").on('click', function() {
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            var exportData = []; //要导出的数据
+            if (a.length == 0) {
+                // 导出所有
+                location.href = port + '/v1/materindepot/exportDepotMaterielOne';
+            } else {
+                //获取选中的选项
+                for (var i = 0; i < a.length; i++) {
+                    exportData[i] = a[i].id;
+                }
+                location.href = port + '/v1/materindepot/exportDepotMateriel?ids=' + exportData.toString();
+            }
+        });
+
+
+    };
+    return oInit;
+};

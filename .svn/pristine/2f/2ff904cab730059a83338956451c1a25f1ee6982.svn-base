@@ -1,0 +1,409 @@
+var roleName = ''; //角色文本
+
+
+
+$(function() {
+
+    //1.初始化Table
+    var oTable = new TableInit();
+    oTable.Init();
+
+    //2.初始化Button的点击事件
+    var oButtonInit = new ButtonInit();
+    oButtonInit.Init();
+
+
+});
+
+//查询
+function searchBtn() {
+    console.log('查询');
+    if ($('#orgName').val() == '' && $('#orgSimpleName').val() == '') {
+        return;
+    }
+    $("#tb_departments").bootstrapTable('refresh');
+}
+//重置
+function resetBtn() {
+    $('#stepName').val('');
+    $("#tb_departments").bootstrapTable('refresh');
+}
+
+
+
+
+
+
+
+//初始化Table
+var TableInit = function() {
+    var oTableInit = new Object();
+    oTableInit.Init = function() {
+        $('#tb_departments').bootstrapTable({
+            url: port + '/v1/step/allMap',
+            method: 'get',
+            locale: 'zh-CN',
+            toolbar: '#toolbar', //工具按钮用哪个容器
+            striped: true, //是否显示行间隔色
+            cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+            pagination: true, //是否显示分页（*）
+            sortable: true, //是否启用排序
+            sortOrder: "asc", //排序方式
+            queryParams: oTableInit.queryParams, //查询参数
+            sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+            pageNum: 1, //初始化加载第一页，默认第一页
+            pageSize: 20, //每页的记录行数（*）
+            pageList: [10], //可供选择的每页的行数（*）
+            search: false, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+            strictSearch: true,
+            showColumns: true, //是否显示所有的列
+            showRefresh: true, //是否显示刷新按钮
+            minimumCountColumns: 2, //最少允许的列数
+            clickToSelect: true, //是否启用点击选中行
+            // height: $(window).height(), //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+            uniqueId: "areaId", //每一行的唯一标识，一般为主键列
+            showToggle: false, //是否显示详细视图和列表视图的切换按钮
+            cardView: false, //是否显示详细视图
+            detailView: false, //是否显示父子表
+            columns: [{
+                checkbox: true
+            }, {
+                field: 'sName',
+                align: 'center',
+                title: '名称'
+            }, {
+                field: 'sSort',
+                align: 'center',
+                title: '排序'
+            }, {
+                field: 'rName',
+                align: 'center',
+                title: '角色'
+            }, {
+                field: 'sExplain',
+                align: 'center',
+                title: '说明'
+            }],
+
+            onLoadSuccess: function(data) {
+                console.log('成功加载表格数据', data);
+                $('.fixed-table-container').css({ 'height': $(window).height() - 220 + 'px' });
+                $('.panel-body').css({ 'height': $(window).height() + 'px' });
+            },
+            onLoadError: function() {
+                $('.fixed-table-container').css({ 'height': $(window).height() - 220 + 'px' });
+                $('.panel-body').css({ 'height': $(window).height() + 'px' });
+            },
+            onClickRow: function(row, $element) {}
+        });
+    };
+
+    //得到查询的参数
+    oTableInit.queryParams = function(params) {
+        var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+            pageSize: params.limit, //页面大小
+            pageNum: (params.offset/params.limit)+1, //页码
+            sName: $('#stepName').val() //名称
+        };
+        return temp;
+    };
+
+
+    return oTableInit;
+};
+
+
+
+
+
+
+// 工具栏按钮事件
+var ButtonInit = function() {
+    var oInit = new Object();
+    var postdata = {};
+
+    oInit.Init = function() {
+        // 添加表格数据
+        $("#btn_add").on('click', function() {
+            layer.open({
+                type: 1,
+                title: '添加',
+                area: ['350px', '350px'],
+                btn: ['确定', '取消'],
+                yes: function(index, layero) {
+                    var stepName = layero.find('#stepName').val(); //名称
+                    var stepSort = layero.find('#stepSort').val(); //排序
+                    var roleId = layero.find('#role').val(); //角色id 角色文本 roleName
+                    var explain = layero.find('#explain').val(); //说明
+
+
+                    if (stepName == '') {
+                        layer.msg('请输入名称');
+                        return;
+                    }
+                    if (stepSort == '') {
+                        layer.msg('请输入排序');
+                        return;
+                    }
+                    if (roleId == '') {
+                        layer.msg('请选择角色');
+                        return;
+                    }
+
+                    $.ajax({
+                        url: port + '/v1/step/save',
+                        type: 'post',
+                        data: {
+                            sName: stepName, //名称
+                            sSort: stepSort, //排序
+                            sRoleid: roleId, //角色id
+                            rName: roleName, //角色文本
+                            sExplain: explain //说明
+                        },
+                        success: function(data) {
+                            console.log(data);
+                            if (data > 0) {
+                                $("#tb_departments").bootstrapTable('refresh');
+                                layer.msg('添加成功');
+                                layer.close(index);
+                            }
+                        }
+                    });
+
+
+                },
+                success: function(layero, index) {
+                    layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+
+
+
+                    // 获取角色下拉
+                    $.ajax({
+                        url: port + '/v1/role/all',
+                        type: 'get',
+                        success: function(res) {
+                            $.each(res, function(i, a) {
+                                layero.find('#role').append('<option value="' + a.rId + '">' + a.rName + '</option>');
+                            });
+                            roleName = layero.find('#role option:selected').text();
+                        }
+                    });
+
+
+
+
+
+                },
+                btnAlign: 'c',
+                content: '<div class="modal-body table-layer" style="padding: 0;margin: 0 20px;z-index: 10">' +
+                    '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                    '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                    '<label for="orgCode"><i class="must-star">*</i>名称：</label>' +
+                    '</div>' +
+                    '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                    '<input id="stepName" autocomplete="off" type="text" class="form-control" />' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                    '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                    '<label for="orgCode"><i class="must-star">*</i>排序：</label>' +
+                    '</div>' +
+                    '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                    '<input id="stepSort" autocomplete="off" type="text" class="form-control" />' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                    '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                    '<label for="orgCode"><i class="must-star">*</i>角色：</label>' +
+                    '</div>' +
+                    '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                    '<select id="role" class="form-control"></select>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                    '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                    '<label for="orgCode">说明：</label>' +
+                    '</div>' +
+                    '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                    '<textarea id="explain" class="form-control" rows="2"></textarea>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>'
+            });
+        });
+
+
+
+        // 修改表格数据
+        $("#btn_edit").on('click', function() {
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            console.log('修改', a[0]);
+            if (a.length == 1) {
+
+                layer.open({
+                    type: 1,
+                    title: '修改',
+                    area: ['350px', '350px'],
+                    btn: ['确定', '取消'],
+                    yes: function(index, layero) {
+                        var stepName = layero.find('#stepName').val(); //名称
+                        var stepSort = layero.find('#stepSort').val(); //排序
+                        var roleId = layero.find('#role').val(); //角色id
+                        var explain = layero.find('#explain').val(); //说明
+
+
+                        if (stepName == '') {
+                            layer.msg('请输入名称');
+                            return;
+                        }
+                        if (stepSort == '') {
+                            layer.msg('请输入排序');
+                            return;
+                        }
+                        if (roleId == '') {
+                            layer.msg('请选择角色');
+                            return;
+                        }
+
+                        $.ajax({
+                            url: port + '/v1/step/update',
+                            type: 'post',
+                            data: {
+                                sId:a[0].sId,
+                                sName: stepName, //名称
+                                sSort: stepSort, //排序
+                                sRoleid: roleId, //角色id
+                                rName: roleName, //角色文本
+                                sExplain: explain //说明
+                            },
+                            success: function(data) {
+                                console.log(data);
+                                if (data > 0) {
+                                    $("#tb_departments").bootstrapTable('refresh');
+                                    layer.msg('修改成功');
+                                    layer.close(index);
+                                }
+                            }
+                        });
+                    },
+                    success: function(layero, index) {
+                        layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+
+                        // 获取角色下拉
+                        $.ajax({
+                            url: port + '/v1/role/all',
+                            type: 'get',
+                            success: function(res) {
+                                $.each(res, function(i, a) {
+                                    layero.find('#role').append('<option value="' + a.rId + '">' + a.rName + '</option>');
+                                });
+                                roleName = layero.find('#role option:selected').text();
+
+                                layero.find('#role option').each(function(index, item) {
+                                    if (item.innerHTML == a[0].rName) {
+                                        $(this).attr('selected', true);
+                                    }
+                                });
+                            }
+                        });
+
+
+
+
+
+                    },
+                    btnAlign: 'c',
+                    content: '<div class="modal-body table-layer" style="padding: 0;margin: 0 20px;z-index: 10">' +
+                        '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                        '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                        '<label for="orgCode"><i class="must-star">*</i>名称：</label>' +
+                        '</div>' +
+                        '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                        '<input id="stepName" autocomplete="off" type="text" class="form-control" value="' + a[0].sName + '" />' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                        '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                        '<label for="orgCode"><i class="must-star">*</i>排序：</label>' +
+                        '</div>' +
+                        '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                        '<input id="stepSort" autocomplete="off" type="text" class="form-control" value="' + a[0].sSort + '" />' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                        '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                        '<label for="orgCode"><i class="must-star">*</i>角色：</label>' +
+                        '</div>' +
+                        '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                        '<select id="role" class="form-control"></select>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">' +
+                        '<div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">' +
+                        '<label for="orgCode">说明：</label>' +
+                        '</div>' +
+                        '<div class="col-md-9" style="padding: 0;margin: 0">' +
+                        '<textarea id="explain" class="form-control" rows="2">' + a[0].sExplain + '</textarea>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>'
+
+                });
+            } else {
+                layer.msg('请选择单行数据');
+            }
+        });
+
+
+        // 删除表格数据
+        $("#btn_delete").on('click', function() {
+
+            var a = $("#tb_departments").bootstrapTable('getSelections');
+            var delData = []; //要删除的数据
+
+            if (a.length == 0) {
+                layer.msg('请选择要删除的数据');
+            } else {
+                //获取选中的ID
+                for (var i = 0; i < a.length; i++) {
+                    delData[i] = a[i].sId;
+                }
+                console.log('删除的数据', delData);
+
+                layer.open({
+                    type: 1,
+                    title: '提示',
+                    area: ['300px', '200px'],
+                    btn: ['确定', '取消'],
+                    success: function(layero, index) {
+                        layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                    },
+                    yes: function(index, layero) {
+                        $.ajax({
+                            url: port + '/v1/step/del',
+                            type: 'post',
+                            data: {
+                                steIds: delData.toString()
+                            },
+                            success: function(data) {
+                                if (data > 0) {
+                                    $("#tb_departments").bootstrapTable('refresh');
+                                    layer.msg('删除成功');
+                                }
+
+                            }
+                        });
+                        console.log('确定');
+                        layer.close(index);
+                    },
+                    btnAlign: 'c',
+                    content: '<div style="margin:20px">确定要删除选中的数据?</div>'
+                });
+
+            }
+        });
+
+
+    };
+    return oInit;
+};

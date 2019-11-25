@@ -1,0 +1,259 @@
+ var upOrgId; //数据表格当前点击上级机构id
+ var clickOrgId; //当前点击树状id
+
+ var reg = /^[1][3,4,5,7,8][0-9]{9}$/; //手机号格式验证
+
+ $(function() {
+
+    
+     //1.初始化Table
+     var oTable = new TableInit();
+     oTable.Init();
+
+     //2.初始化Button的点击事件
+     var oButtonInit = new ButtonInit();
+     oButtonInit.Init();
+     
+
+ });
+
+ //查询
+ function searchBtn() {
+     console.log('查询');
+     if ($('#orgName').val() == '' && $('#orgSimpleName').val() == '') {
+         return;
+     }
+     $("#tb_departments").bootstrapTable('refresh');
+ }
+ //重置
+ function resetBtn() {
+     console.log('重置');
+     location.reload();
+ }
+
+ // 树状菜单
+ function getTree() {
+     var tree = "";
+     $.ajax({
+         url: 'tree.json',
+         type: 'get',
+         async: false,
+         success: function(data) {
+             console.log('树状', data);
+             tree = JSON.stringify(data.data);
+         }
+     });
+     return tree;
+ }
+
+
+
+
+
+ //初始化Table
+ var TableInit = function() {
+     var oTableInit = new Object();
+     oTableInit.Init = function() {
+         $('#tb_departments').bootstrapTable({
+             url: port+'/v1/materielOutdepot/outDepotHangupMaterielDetil',
+             method: 'get',
+             locale: 'zh-CN',
+             toolbar: '#toolbar', //工具按钮用哪个容器
+             striped: true, //是否显示行间隔色
+             cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+             pagination: true, //是否显示分页（*）
+             sortable: true, //是否启用排序
+             sortOrder: "asc", //排序方式
+             queryParams: oTableInit.queryParams, //查询参数
+             sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+             pageNum: 1, //初始化加载第一页，默认第一页
+             pageSize: 8, //每页的记录行数（*）
+             pageList: [10], //可供选择的每页的行数（*）
+             search: false, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+             strictSearch: true,
+             showColumns: true, //是否显示所有的列
+             showRefresh: true, //是否显示刷新按钮
+             minimumCountColumns: 2, //最少允许的列数
+             clickToSelect: true, //是否启用点击选中行
+             // height: $(window).height(), //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+             uniqueId: "areaId", //每一行的唯一标识，一般为主键列
+             showToggle: false, //是否显示详细视图和列表视图的切换按钮
+             cardView: false, //是否显示详细视图
+             detailView: false, //是否显示父子表
+             columns: [{
+                 checkbox: true
+             }, {
+                 field: 'outdepotMaterielId',
+                 align: 'center',
+                 title: '编号'
+             }, {
+                 field: 'outdepotMaterielType',
+                 align: 'center',
+                 title: '类型'
+             },
+             {
+                 field: 'outdepotMaterielName',
+                 align: 'center',
+                 title: '名称'
+             },
+             {
+                 field: 'outdepotMaterielSpec',
+                 align: 'center',
+                 title: '规格'
+             },
+             {
+                 field: 'outdepotMaterielUnit',
+                 align: 'center',
+                 title: '单位'
+             },
+             {
+                 field: 'outdepotMaterielYuliu1',
+                 align: 'center',
+                 title: '库存'
+             },{
+                 field: 'outdepotMaterielNumbers',
+                 align: 'center',
+                 title: '申请数量'
+             },{
+                 field: 'outdepotMaterielYuliu3',
+                 align: 'center',
+                 title: '实出数量'
+             },{
+                 field: 'name8',
+                 align: 'center',
+                 title: '操作',
+                 events: operateEvents,
+                 formatter: function(value, row, index) {
+                     var result = "<a href='javascript:;' class='info'>挂起批次</a>";
+                     return result;
+                 }
+             }
+             ],
+
+             //加载成功时执行
+             onLoadSuccess: function(data) {
+                 console.log('成功加载表格数据', data);
+                 $('.fixed-table-container').css({'height':'300px'});
+                 $('.panel-body').css({'height':$(window).height()+'px'});
+             },
+             //加载失败时执行
+             onLoadError: function() {},
+             onClickRow: function(row, $element) {},
+             onDblClickCell: function(field, value, row, $element) {
+                // // console.log(field,value,row,$element)
+                 $element.attr('contenteditable', true);
+                 $('#tb_departments tr td:nth-child(2)').attr('contenteditable',false);
+                 $('#tb_departments tr td:nth-child(3)').attr('contenteditable',false);
+                 $('#tb_departments tr td:nth-child(4)').attr('contenteditable',false);
+                 $('#tb_departments tr td:nth-child(5)').attr('contenteditable',false);
+                 $('#tb_departments tr td:nth-child(6)').attr('contenteditable',false);
+                 $('#tb_departments tr td:nth-child(7)').attr('contenteditable',false);
+                 $('#tb_departments tr td:nth-child(10)').attr('contenteditable',false);
+                 $element.blur(function() {
+                     var index = $element.parent().data('index');
+                     var tdValue = $element.html();
+                     saveData(index, field, tdValue);
+                 });
+             }
+         });
+     };
+
+     function saveData(index, field, value) {
+        $('#tb_departments').bootstrapTable('updateCell', {
+            index: index,       //行索引
+            field: field,       //列名
+            value: value        //cell值
+        })
+
+        console.log('编辑后更新',index,field,value);
+    }
+
+     //得到查询的参数
+     oTableInit.queryParams = function(params) {
+         var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+             pageSize: params.limit, //页面大小
+             pageNum: (params.offset/params.limit)+1, //页码
+             id:sessionStorage.getItem('stockId')
+         };
+         return temp;
+     };
+
+
+     return oTableInit;
+ };
+
+
+
+
+
+
+ // 点击当前行数据详情事件
+ window.operateEvents = {
+     'click .info': function(e, value, row, index) {
+         parent.layer.open({
+             type: 2,
+             title: '挂起批次',
+             btn: '关闭',
+             btnAlign: 'c',
+             area: ['700px', '500px'],
+             end:function(){
+                sessionStorage.removeItem('piciId');
+             },
+             success: function(layero, index) {
+                 layero.find('.layui-layer-btn0').css({ background: '#fff', color: '#333', borderColor: '#ddd', padding: '0 20px' });
+             },
+             content: 'guaqi_pici.html'
+
+         });
+         console.log('行数据', row);
+
+         sessionStorage.setItem('piciId', row.id);
+     }
+ };
+
+
+
+
+
+ // 工具栏按钮事件
+ var ButtonInit = function() {
+     var oInit = new Object();
+     var postdata = {};
+
+     oInit.Init = function() {
+
+
+         // 出库
+         $("#btn_export").on('click', function() {
+             console.log('出库');
+             var a = $("#tb_departments").bootstrapTable('getSelections');
+             var exportData = []; //要删除的数据
+             if (a.length == 0) {
+                 layer.msg('请选择要出库的数据');
+             } else {
+                 //获取选中的ID
+                 for (var i = 0; i < a.length; i++) {
+                     exportData[i] = a[i];
+                 }
+                 console.log('出库的数据', exportData);
+
+                 $.ajax({
+                    url:port+'/v1/materielOutdepot/outDepotHangup',
+                    type:'post',
+                    data:{
+                        id:sessionStorage.getItem('stockId'),
+                        odList:JSON.stringify(exportData)
+                    },
+                    success:function(res){
+                        console.log('出库结果',res);
+                        sessionStorage.setItem('exportResult', res);
+                        $("#tb_departments").bootstrapTable('refresh');
+                    }
+                 });
+             }
+         });
+
+
+     };
+     return oInit;
+ };

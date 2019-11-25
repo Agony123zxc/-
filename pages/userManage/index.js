@@ -1,0 +1,520 @@
+ var upOrgId; //数据表格当前点击上级机构id
+ var clickOrgId; //当前点击树状id
+
+ var reg = /^[1][3,4,5,7,8][0-9]{9}$/; //手机号格式验证
+
+ $(function() {
+
+     // 树状数据
+     $('#tree').treeview({
+         data: getTree()
+     });
+     // 树状数据事件
+     $('#tree').on('nodeSelected', function(event, data) {
+         console.log('树状菜单', data);
+         clickOrgId = data.id;
+         $("#tb_departments").bootstrapTable('refresh');
+
+     });
+     //1.初始化Table
+     var oTable = new TableInit();
+     oTable.Init();
+
+     //2.初始化Button的点击事件
+     var oButtonInit = new ButtonInit();
+     oButtonInit.Init();
+
+
+ });
+
+ //查询
+ function searchBtn() {
+     console.log('查询');
+
+     $("#tb_departments").bootstrapTable('refresh');
+ }
+ //重置
+ function resetBtn() {
+     $('#department').val('');
+     $('#name').val('');
+     $("#tb_departments").bootstrapTable('refresh');
+     // location.reload();
+ }
+
+ // 树状菜单
+ function getTree() {
+     var tree = "";
+     $.ajax({
+         url: 'tree.json',
+         type: 'get',
+         async: false,
+         success: function(data) {
+             console.log('树状', data);
+             tree = JSON.stringify(data.data);
+         }
+     });
+     return tree;
+ }
+
+
+
+
+
+ //初始化Table
+ var TableInit = function() {
+     var oTableInit = new Object();
+     oTableInit.Init = function() {
+         $('#tb_departments').bootstrapTable({
+             url: port + '/v1/personnel2/seleUser',
+             method: 'get',
+             locale: 'zh-CN',
+             toolbar: '#toolbar', //工具按钮用哪个容器
+             striped: true, //是否显示行间隔色
+             cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+             pagination: true, //是否显示分页（*）
+             sortable: true, //是否启用排序
+             sortOrder: "asc", //排序方式
+             queryParams: oTableInit.queryParams, //查询参数
+             sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+             pageNum: 1, //初始化加载第一页，默认第一页
+             pageSize: 8, //每页的记录行数（*）
+             pageList: [10], //可供选择的每页的行数（*）
+             search: false, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+             strictSearch: true,
+             showColumns: true, //是否显示所有的列
+             showRefresh: true, //是否显示刷新按钮
+             minimumCountColumns: 2, //最少允许的列数
+             clickToSelect: true, //是否启用点击选中行
+             // height: $(window).height(), //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+             uniqueId: "areaId", //每一行的唯一标识，一般为主键列
+             showToggle: false, //是否显示详细视图和列表视图的切换按钮
+             cardView: false, //是否显示详细视图
+             detailView: false, //是否显示父子表
+             columns: [{
+                 checkbox: true
+             }, {
+                 field: 'pJobnum',
+                 align: 'center',
+                 title: '用户名'
+             }, {
+                 field: 'pName',
+                 align: 'center',
+                 title: '姓名'
+             }, {
+                 field: 'pSex',
+                 align: 'center',
+                 title: '性别'
+             }, {
+                 field: 'pJobnum',
+                 align: 'center',
+                 title: '工号'
+             }, {
+                 field: 'depId',
+                 align: 'center',
+                 title: '部门'
+             }, {
+                 field: 'roleName',
+                 align: 'center',
+                 title: '角色名称'
+             }, {
+                 field: 'pMark',
+                 align: 'center',
+                 title: '备注'
+             }],
+
+             //加载成功时执行
+             onLoadSuccess: function(data) {
+                 console.log('成功加载表格数据', data);
+                 if ($(window).height() <= 650) {
+                     $('.fixed-table-container').css({ 'height': $(window).height() - 300 + 'px' });
+                     $('.panel-body').css({ 'height': $(window).height() + 'px' });
+                 } else {
+                     $('.fixed-table-container').css({ 'height': $(window).height() - 200 + 'px' });
+                     $('.panel-body').css({ 'height': $(window).height() + 'px' });
+                 }
+             },
+             //加载失败时执行
+             onLoadError: function() {
+                 if ($(window).height() <= 650) {
+                     $('.fixed-table-container').css({ 'height': $(window).height() - 300 + 'px' });
+                     $('.panel-body').css({ 'height': $(window).height() + 'px' });
+                 } else {
+                     $('.fixed-table-container').css({ 'height': $(window).height() - 200 + 'px' });
+                     $('.panel-body').css({ 'height': $(window).height() + 'px' });
+                 }
+             },
+             onClickRow: function(row, $element) {}
+         });
+     };
+
+     //得到查询的参数
+     oTableInit.queryParams = function(params) {
+         var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+             pageSize: params.limit, //页面大小
+             pageNum: (params.offset / params.limit) + 1, //页码
+             depId: $('#department').val(), //人事查询
+             pName: $('#name').val() //姓名查询
+         };
+         return temp;
+     };
+
+
+     return oTableInit;
+ };
+
+
+
+
+
+ // 授权
+ $('#btn_authorize').on('click', function() {
+     // console.log('授权')
+ });
+
+
+ // 导入
+ $("#btn_import").on('click', function() {
+     console.log('导入');
+     layer.open({
+         type: 1,
+         title: '导入',
+         btn: ['导入', '关闭'],
+         btnAlign: 'c',
+         area: ['470px', '320px'],
+         yes: function(index, layero) {
+             console.log('导入');
+             // layer.close(index);
+         },
+         content: `
+                <div class="modal-body" style="overflow: hidden;margin-top: 20px;">
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;z-index: 10">
+                                <div class="col-md-3" style="padding: 0;margin: 0;text-align: center">
+                                    <label for="remarks">模板：</label>
+                                </div>
+                                <div class="col-md-8" style="padding: 0;margin: 0">
+                                    <a href="javascript:;"><strong>点击下载模板</strong></a>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12" style="margin-top: 20px;">
+                                <form id="importFile" name="importFile" class="form-horizontal" method="post" enctype="multipart/form-data">
+                                    <div class="col-md-3" style="padding: 0;margin: 0;text-align: center">
+                                        <label class="control-label">选择文件：</label>
+                                    </div>
+                                    <div class="col-md-8" style="padding: 0;margin: 0">
+                                        <input id="importFiles" name="importFiles" type="file" class="file" data-show-preview="false" placeholder="请选择您要导入的Excel文件">
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+             `
+
+     });
+ });
+
+
+ // 点击当前行数据详情事件
+ window.operateEvents = {
+     'click .info': function(e, value, row, index) {
+         layer.open({
+             type: 1,
+             title: '详情',
+             btn: '关闭',
+             btnAlign: 'c',
+             area: ['350px', '250px'],
+             success: function(layero, index) {
+                 layero.find('.layui-layer-btn0').css({ background: '#fff', color: '#333', borderColor: '#ddd', padding: '0 20px' });
+             },
+             content: `
+                <div class="detail-layer">
+                    <ul>
+                        <li>南校区-一号楼-一层-101房间</li>
+                    </ul>
+                </div>
+             `
+
+         });
+         console.log('行数据', row);
+     }
+ };
+
+
+
+
+
+ // 工具栏按钮事件
+ var ButtonInit = function() {
+     var oInit = new Object();
+     var postdata = {};
+
+     oInit.Init = function() {
+         // 添加表格数据
+         $("#btn_add").on('click', function() {
+             layer.open({
+                 type: 1,
+                 title: '添加',
+                 area: ['400px', '300px'],
+                 btn: ['确定', '取消'],
+                 end: function() {
+                     sessionStorage.removeItem('selectName');
+                     sessionStorage.removeItem('selectId');
+                 },
+                 yes: function(index, layero) {
+                     console.log('确定');
+
+                     var roleId = layero.find('#role_name').val(); //角色id
+                     var roleName = layero.find('#role_name option:selected').text(); //角色名称
+                     var remark = layero.find('#remark').val(); //备注
+
+
+                     if (sessionStorage.getItem('selectName') == null) {
+                         layer.msg('请选择姓名');
+                         return;
+                     }
+
+                     $.ajax({
+                         url: port + '/v1/personnel2/addUsers',
+                         type: 'post',
+                         data: {
+                             ids: sessionStorage.getItem('selectId').split(',').toString(),
+                             rId: roleId,
+                             roleName: roleName,
+                             pMark: remark
+                         },
+                         success: function(data) {
+                             console.log('添加成功' + data);
+                             $("#tb_departments").bootstrapTable('refresh'); //刷新表格数据
+                             $('#tree').treeview({ //刷新树状菜单
+                                 data: getTree()
+                             });
+                             layer.msg('添加成功');
+                             layer.close(index);
+                             location.reload();
+                         }
+                     });
+
+
+                 },
+                 success: function(layeroo, index) {
+                     layeroo.find('.layui-layer-btn0').css('background', '#27AAE1');
+                     //角色下拉框  
+                     $.ajax({
+                         url: port + '/v1/role/all',
+                         type: 'get',
+                         success: function(res) {
+                             console.log(res)
+                             for (var i = 0; i < res.length; i++) {
+                                 document.getElementById("role_name").innerHTML += '<option value=' + res[i].rId + '>' + res[i].rName + '</option>';
+                             }
+                         }
+                     });
+
+                     // 添加姓名
+                     layeroo.find('#select_name').on('click', function() {
+                         layer.open({
+                             type: 2,
+                             area: ['1050px', '500px'],
+                             btn: ['确定', '取消'],
+                             btnAlign: 'c',
+                             title: '添加姓名',
+                             success: function(layero, index) {
+                                 layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                             },
+                             yes: function(index, layero) {
+                                 var body = layer.getChildFrame('body', index);
+                                 body[0].querySelector('#btn_delete').click();
+
+                                 layeroo.find('#select_name').html(sessionStorage.getItem('selectName'));
+
+                                 layer.close(index);
+                             },
+                             content: 'addName.html'
+                         });
+                     });
+
+                 },
+                 btnAlign: 'c',
+                 content: `
+                     <div class="modal-body table-layer" style="padding: 0;margin: 0 20px;z-index: 10">
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">
+                                    <label for="orgCode"><i class="must-star">*</i>姓名：</label>
+                                </div>
+                                <div class="col-md-9" style="padding: 0;margin: 0">
+                                    <textarea id="select_name" placeholder='点击选择' readonly name="selectName" rows="2" class="form-control"></textarea>
+                                   
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">
+                                    <label for="orgCode"><i class="must-star">*</i>角色名称：</label>
+                                </div>
+                                <div class="col-md-9" style="padding: 0;margin: 0">
+                                    <select class="form-control" id="role_name"></select>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">
+                                    <label>备注：</label>
+                                </div>
+                                <div class="col-md-9" style="padding: 0;margin: 0;">
+                                    <textarea class="form-control" id="remark" rows="2" style="resize: none;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                 `
+             });
+         });
+
+
+
+         // 修改表格数据
+         $("#btn_edit").on('click', function() {
+             var a = $("#tb_departments").bootstrapTable('getSelections');
+             console.log('修改', a[0]);
+             if (a.length == 1) {
+
+                 layer.open({
+                     type: 1,
+                     title: '修改',
+                     area: ['400px', '300px'],
+                     btn: ['确定', '取消'],
+                     yes: function(index, layero) {
+
+                         var roleId = layero.find('#role_name').val(); //角色id
+                         var roleName = layero.find('#role_name option:selected').text(); //角色名称
+                         var remark = layero.find('#remark').val(); //备注
+
+
+                         $.ajax({
+                             url: port + '/v1/personnel2/updateUser',
+                             type: 'post',
+                             data: {
+                                 rId: roleId,
+                                 roleName: roleName,
+                                 pMark: remark,
+                                 pId: a[0].pId
+                             },
+                             success: function(data) {
+                                 console.log('修改成功' + data);
+                                 $("#tb_departments").bootstrapTable('refresh'); //刷新表格数据
+                                 layer.msg('修改成功');
+                                 layer.close(index);
+                             }
+                         });
+
+
+                     },
+                     success: function(layeroo, index) {
+                         layeroo.find('.layui-layer-btn0').css('background', '#27AAE1');
+
+                         //角色下拉框  
+                         $.ajax({
+                             url: port + '/v1/role/all',
+                             type: 'get',
+                             success: function(res) {
+                                 console.log(res)
+                                 for (var i = 0; i < res.length; i++) {
+                                     document.getElementById("role_name").innerHTML += '<option value=' + res[i].rId + '>' + res[i].rName + '</option>';
+                                 }
+                             }
+                         });
+
+                     },
+                     btnAlign: 'c',
+                     content: `
+                     <div class="modal-body table-layer" style="padding: 0;margin: 0 20px;z-index: 10">
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">
+                                    <label for="orgCode"><i class="must-star">*</i>姓名：</label>
+                                </div>
+                                <div class="col-md-9" style="padding: 0;margin: 0">
+                                    <textarea readonly id="select_name" name="selectName" rows="1" class="form-control">${a[0].pName}</textarea>
+                                   
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">
+                                    <label for="orgCode"><i class="must-star">*</i>角色名称：</label>
+                                </div>
+                                <div class="col-md-9" style="padding: 0;margin: 0">
+                                    <select class="form-control" id="role_name">
+                                        
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12" style="padding: 0;margin: 0;padding-top: 8px;z-index: 10">
+                                <div class="col-md-3" style="padding: 0;margin: 0;text-align: right;">
+                                    <label>备注：</label>
+                                </div>
+                                <div class="col-md-9" style="padding: 0;margin: 0;">
+                                    <textarea class="form-control" id="remark" rows="2" style="resize: none;">${a[0].pMark}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                 `
+                 });
+
+
+             } else {
+                 layer.msg('请选择单行数据');
+             }
+         });
+
+
+
+
+         // 删除表格数据
+         $("#btn_delete").on('click', function() {
+             console.log('删除')
+             var a = $("#tb_departments").bootstrapTable('getSelections');
+             console.log(a)
+             var delData = []; //要删除的数据
+
+             if (a.length == 0) {
+                 layer.msg('请选择要删除的数据');
+             } else {
+                 //获取选中的ID
+                 for (var i = 0; i < a.length; i++) {
+                     delData[i] = a[i].pId;
+                 }
+                 console.log('删除的数据', delData);
+
+                 layer.open({
+                     type: 1,
+                     title: '提示',
+                     area: ['300px', '200px'],
+                     btn: ['确定', '取消'],
+                     success: function(layero, index) {
+                         layero.find('.layui-layer-btn0').css('background', '#27AAE1');
+                     },
+                     yes: function(index, layero) {
+                         $.ajax({
+                             url: port + '/v1/personnel2/delUser',
+                             type: 'post',
+                             data: {
+                                 pIds: delData.toString()
+                             },
+                             success: function(data) {
+                                 $("#tb_departments").bootstrapTable('refresh'); //刷新表格数据
+                                 $('#tree').treeview({ //刷新树状菜单
+                                     data: getTree()
+                                 });
+                                 layer.msg('删除成功');
+                                 console.log('确定');
+                                 layer.close(index);
+
+                             }
+                         });
+
+                     },
+                     btnAlign: 'c',
+                     content: '<div style="margin:20px">确定要删除选中的数据?</div>'
+                 });
+
+             }
+         });
+
+
+     };
+     return oInit;
+ };
